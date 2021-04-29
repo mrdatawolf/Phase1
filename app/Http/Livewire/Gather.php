@@ -25,11 +25,15 @@ class Gather extends Component
     }
 
     public function gather() {
-        $this->emit('addToTotal', $this->resourceId, $this->gatherAmount);
+        if($this->enabled) {
+            $this->emit('addToTotal', $this->resourceId, $this->gatherAmount);
+        }
     }
 
     public function improveGather() {
-        $this->gatherAmount++;
+        if($this->enabled) {
+            $this->gatherAmount++;
+        }
     }
 
     public function allow() {
