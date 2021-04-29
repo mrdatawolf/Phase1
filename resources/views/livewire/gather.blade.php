@@ -5,14 +5,14 @@
             <span class="{{ ($enabled) ? 'green' : 'red' }}">Enabled</span>
         </h1>
         <div class="gather">
-            <button wire:click="gather" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Gather <span class="gather_amount_to_add">{{ $gatherAmount }}</span></button>
+            <div wire:click="gather" class="{{($enabled) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700'}} text-white font-bold py-2 px-4 rounded-full">Gather <span class="gather_amount_to_add">{{ $gatherAmount }}</span></div>
         </div>
         <div class="gather_improve">
-            <button wire:click="improveGather" class="improveGather {{($allowed) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700'}} text-white font-bold py-2 px-4 rounded-full">Improve</button>
+            <div wire:click="improveGather" class="improveGather {{($enabled) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700'}} text-white font-bold py-2 px-4 rounded-full">Improve</div>
         </div>
         <div class="activateType">
             @if($canEnable && ! $enabled)
-                <button wire:click="enable" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Enable</button>
+                <div wire:click="enable" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Enable</div>
             @endif
         </div>
     </div>
