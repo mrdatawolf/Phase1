@@ -1,6 +1,4 @@
-<?php
-
-namespace App\Http\Livewire;
+<?php namespace App\Http\Livewire;
 
 use Livewire\Component;
 
@@ -10,17 +8,34 @@ class Gather extends Component
     public $resourceName;
     public $gatherAmount    = 1;
     public $canEnable       = false;
+    public $canAutomate     = false;
+    public $canImprove      = false;
     public $enabled         = false;
     public $allowed         = false;
+    public $automated       = false;
 
-    public $listeners       = ['canBeEnabled'];
+    public $listeners       = ['canBeEnabled', 'canBeAutomated', 'canBeImproved'];
 
-    public function mount() {
-        if($this->enabled) {
-            $this->emit('enable', $this->resourceId);
+    public function allow() {
+        $this->allowed = true;
+    }
+
+    public function canBeEnabled($id, $bool) {
+        if($this->resourceId === $id) {
+            $this->canEnable = $bool;
         }
-        if($this->allowed) {
-            $this->emit('allow', $this->resourceId);
+    }
+
+    public function canBeAutomated($id, $bool) {
+        if($this->resourceId === $id) {
+            $this->canAutomate = $bool;
+        }
+    }
+
+
+    public function canBeImproved($id, $bool) {
+        if($this->resourceId === $id) {
+            $this->canImprove = $bool;
         }
     }
 
@@ -30,14 +45,12 @@ class Gather extends Component
         }
     }
 
-    public function improveGather() {
-        if($this->enabled) {
+    public function improve() {
+        if($this->enabled && $this->canImprove) {
             $this->gatherAmount++;
+            $this->emit('improve', $this->resourceId);
         }
-    }
-
-    public function allow() {
-        $this->allowed = true;
+        $this->canImprove = false;
     }
 
     public function enable() {
@@ -45,12 +58,15 @@ class Gather extends Component
             $this->enabled = true;
             $this->emit('enable', $this->resourceId);
         }
+        $this->canEnable = false;
     }
 
-    public function canBeEnabled($id, $bool) {
-        if($this->resourceId === $id) {
-            $this->canEnable = $bool;
+    public function automate() {
+        if($this->canAutomate) {
+            $this->automated = true;
+            $this->emit('automate', $this->resourceId);
         }
+        $this->canAutomate = false;
     }
 
     public function render()
