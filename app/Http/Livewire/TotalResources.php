@@ -321,7 +321,7 @@ class TotalResources extends Component
 
 
     private function addToDebt($id) {
-        $this->totals[$id] += ceil($this->totals[$id]*$this->debtModifier);
+        $this->totals[$id] -= ($this->resourceIncrementAmount[$id]-1);
     }
 
     /**
@@ -387,6 +387,12 @@ class TotalResources extends Component
                 $this->addToDebt($id);
             }
         }
+    }
+
+
+    public function runTimedChecks() {
+        $this->checkAutomated();
+        $this->checkDebt();
     }
 
 
