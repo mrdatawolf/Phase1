@@ -1,14 +1,27 @@
-<div class="p-4 gap-4 grid grid-cols-12 text-sm font-mono ">
-    <div class="rounded text-xs bg-gray-300"><label>Clay:</label><text>{{ $totals[1] }}</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Water:</label><text>{{ $totals[2] }}</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Wood:</label><text>{{ $totals[3] }}</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Wheat:</label><text>0</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Sheep:</label><text>0</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Stone:</label><text>0</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Silver:</label><text>0</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Gold:</label><text>0</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Copper:</label><text>0</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Tin:</label><text>0</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Iron:</label><text>0</text></div>
-    <div class="rounded text-xs bg-gray-300"><label>Aluminum:</label><text>0</text></div>
+<div class="p-4 gap-4 grid grid-cols-12 text-xs font-mono ">
+    @php
+        $items = [
+        1 => 'stone',
+        2 => 'water',
+        3 => 'wood',
+        4 => 'grain',
+        5 => 'livestock',
+        6 => 'clay',
+        7 => 'silver',
+        8 => 'gold',
+        9 => 'copper',
+        10 => 'tin',
+        11 => 'iron',
+        12 => 'aluminum'
+        ];
+    @endphp
+    @foreach($items as $id => $name)
+    <div class="rounded text-xs bg-gray-300"><label>{{ ucfirst($name) }}:</label><text>{{ $totals[$id] }} / {{ $resourceIncrementAmount[$id] }} / {{ $resourcesNeededToImprove[$id] }}</text></div>
+    @endforeach
+    <script>
+        let runAutomated = function () {
+            Livewire.emit('checkAutomated');
+        }
+        let timer = setInterval(runAutomated, 2000);
+    </script>
 </div>
