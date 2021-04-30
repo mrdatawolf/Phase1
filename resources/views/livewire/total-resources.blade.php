@@ -21,6 +21,7 @@
     <script>
         let runAutomated = function () {
             Livewire.emit('checkAutomated');
+            Livewire.emit('checkDebt');
         }
         let timer = setInterval(runAutomated, 2000);
     </script>

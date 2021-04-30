@@ -64,8 +64,9 @@ class TotalResources extends Component
 
     public $enabled;
     public $automated;
+    public $debtModifier;
 
-    public $listeners = ['addToTotal', 'enable', 'automate', 'improve', 'checkAutomated'];
+    public $listeners = ['addToTotal', 'enable', 'automate', 'improve', 'checkAutomated', 'checkDebt'];
 
 
     public function mount()
@@ -229,6 +230,8 @@ class TotalResources extends Component
             11 => false,
             12 => false
         ];
+
+        $this->debtModifier = .2;
     }
 
 
@@ -317,6 +320,10 @@ class TotalResources extends Component
     }
 
 
+    private function addToDebt($id) {
+        $this->totals[$id] += ceil($this->totals[$id]*$this->debtModifier);
+    }
+
     /**
      * note: add an amount to a resource and check if that allows other resources to be enabled
      *
@@ -370,6 +377,14 @@ class TotalResources extends Component
         foreach($this->automated as $resourceId => $bool) {
             if($bool) {
                 $this->runAutomatedUpdates($resourceId);
+            }
+        }
+    }
+
+    public function checkDebt() {
+        foreach ($this->totals as $id => $amount) {
+            if($amount < 0) {
+                $this->addToDebt($id);
             }
         }
     }
