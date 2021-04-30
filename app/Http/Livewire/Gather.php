@@ -48,7 +48,7 @@ class Gather extends Component
     public function improve() {
         if($this->enabled && $this->canImprove) {
             $this->gatherAmount++;
-            $this->emit('improve', $this->resourceId);
+            $this->emit('improve', $this->resourceId, $this->gatherAmount);
         }
         $this->canImprove = false;
     }

@@ -10,9 +10,18 @@
         </div>
         <div class="col-span-12">
             <div class="p-4 grid grid-cols-3 gap-4">
-                @livewire('gather', ['resourceId' => 1, 'resourceName' => 'Clay', 'enabled' => 1, 'allowed' => 1, 'canEnable' => 1])
+                @livewire('gather', ['resourceId' => 1, 'resourceName' => 'Stone', 'enabled' => 1, 'allowed' => 1, 'canEnable' => 1])
                 @livewire('gather', ['resourceId' => 2, 'resourceName' => 'Water', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
                 @livewire('gather', ['resourceId' => 3, 'resourceName' => 'Wood', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 4, 'resourceName' => 'Grain', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 5, 'resourceName' => 'Livestock', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 6, 'resourceName' => 'Clay', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 7, 'resourceName' => 'Silver', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 8, 'resourceName' => 'Gold', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 9, 'resourceName' => 'Copper', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 10, 'resourceName' => 'Tin', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 11, 'resourceName' => 'Iron', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
+                @livewire('gather', ['resourceId' => 12, 'resourceName' => 'Aluminum', 'enabled' => 0, 'allowed' => 1, 'canEnable' => 0])
             </div>
         </div>
     </div>
