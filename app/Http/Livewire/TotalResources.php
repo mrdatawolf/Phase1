@@ -8,6 +8,9 @@
  * 4. set the minimum resources needed to make a resource available.
  */
 
+use App\Models\AutomateResources;
+use App\Models\EnableResources;
+use App\Models\Resource;
 use Livewire\Component;
 
 class TotalResources extends Component
@@ -64,13 +67,17 @@ class TotalResources extends Component
 
     public $enabled;
     public $automated;
-    public $debtModifier;
+    public $resources;
 
-    public $listeners = ['addToTotal', 'enable', 'automate', 'improve', 'checkAutomated', 'checkDebt'];
+    public $listeners = ['requestGather', 'requestEnable', 'requestAutomate', 'requestImprove', 'checkAutomated', 'checkDebt'];
 
 
     public function mount()
     {
+        foreach(Resource::get() as $resource) {
+            $this->resources[$resource->id] = $resource->name;
+        }
+
         $this->totals                    = [
             1  => 0,
             2  => 0,
@@ -84,34 +91,6 @@ class TotalResources extends Component
             10 => 0,
             11 => 0,
             12 => 0
-        ];
-        $this->resourcesNeededToEnable   = [
-            1  => [],
-            2  => [1 => 10],
-            3  => [1 => 10, 2 => 5],
-            4  => [1 => 5, 2 => 30, 3 => 20],
-            5  => [1 => 400, 2 => 100],
-            6  => [1 => 500, 2 => 450],
-            7  => [1 => 700, 2 => 350],
-            8  => [1 => 900, 2 => 750],
-            9  => [1 => 100, 2 => 1250],
-            10 => [1 => 500, 2 => 1450],
-            11 => [1 => 5000, 2 => 4500],
-            12 => [1 => 9000, 2 => 4050]
-        ];
-        $this->resourcesNeededToAutomate = [
-            1  => [2 => 50, 3 => 10],
-            2  => [1 => 100, 3 => 10],
-            3  => [1 => 10, 2 => 5],
-            4  => [2 => 500, 3 => 100],
-            5  => [1 => 2000, 2 => 2000, 3 => 500, 4 => 4000],
-            6  => [1 => 200, 2 => 400],
-            7  => [1 => 4000, 2 => 3000],
-            8  => [1 => 6000, 2 => 5000],
-            9  => [1 => 12000, 2 => 7500],
-            10 => [1 => 50000, 2 => 12000],
-            11 => [1 => 75000, 2 => 30000],
-            12 => [1 => 200000, 2 => 70000]
         ];
 
         $this->resourcesNeededToImprove = [
@@ -231,32 +210,53 @@ class TotalResources extends Component
             12 => false
         ];
 
-        $this->debtModifier = .2;
+        $this->resources = Resource::get();
+        $resourcesNeededToAutomate = AutomateResources::get();
+        foreach($resourcesNeededToAutomate as $data) {
+            for ($x = 1; $x <= 12; $x++) {
+                $thisId = 'r'.$x;
+                $amount = (int)$data->$thisId;
+                if ($amount > 0) {
+                    $this->resourcesNeededToAutomate[$data->resource_id][$x] = $amount;
+                }
+            }
+        }
+
+        $resourcesNeededToEnable = EnableResources::get();
+        foreach($resourcesNeededToEnable as $data) {
+            for ($x = 1; $x <= 12; $x++) {
+                $thisId = 'r'.$x;
+                $amount = (int)$data->$thisId;
+                if ($amount > 0) {
+                    $this->resourcesNeededToEnable[$data->resource_id][$x] = $amount;
+                }
+            }
+        }
     }
 
 
-    private function setEnable()
+    private function setEnableStatus()
     {
         foreach ($this->resourcesNeededToEnable as $resouceId => $data) {
             if ( ! $this->enabled[$resouceId]) {
-                $canEnable = $this->checkForResources($data);
+                $canEnable = $this->hasResourcesNeeded($data);
                 $this->updateEligiblity($resouceId, 'enable', $canEnable);
             }
         }
     }
 
 
-    private function setAutomate()
+    private function setAutomateStatus()
     {
         foreach ($this->resourcesNeededToAutomate as $resouceId => $data) {
             if ( $this->enabled[$resouceId] && ! $this->automated[$resouceId]) {
-                $canAutomate = $this->checkForResources($data);
+                $canAutomate = $this->hasResourcesNeeded($data);
                 $this->updateEligiblity($resouceId, 'automate', $canAutomate);
             }
         }
     }
 
-    private function setImprove()
+    private function setImproveStatus()
     {
         foreach ($this->resourcesNeededToImprove as $resourceId => $data) {
             if ( $this->enabled[$resourceId]) {
@@ -272,12 +272,13 @@ class TotalResources extends Component
      *
      * @return bool
      */
-    private function checkForResources($resourcesNeeded): bool
+    private function hasResourcesNeeded($resourcesNeeded): bool
     {
         $allow = true;
         foreach ($resourcesNeeded as $neededId => $amountNeeded) {
-            if ($allow === true) {
-                $allow = ($this->totals[$neededId] >= $amountNeeded);
+            $allow = ($this->totals[$neededId] >= $amountNeeded);
+            if ($allow === false) {
+                break;
             }
         }
 
@@ -293,20 +294,20 @@ class TotalResources extends Component
     private function updateEligiblity($resouceId, $type, $bool) {
         switch($type) {
             case 'enable':
-                if ($this->eligibleToEnable[$resouceId] !== $bool) {
+                if(! $this->enabled[$resouceId]) {
                     $this->eligibleToEnable[$resouceId] = $bool;
                     $this->emit('canBeEnabled', $resouceId, $bool);
                 }
                 break;
             case 'automate' :
-                if ($this->eligibleToAutomate[$resouceId] !== $bool) {
+                if(! $this->automated[$resouceId]) {
                     $this->eligibleToAutomate[$resouceId] = $bool;
-                    $this->emit('canBeAutomated', $resouceId, $bool);
+                    $this->emit('canBeAutomated', $resouceId, $bool, $this->resourcesNeededToAutomate[$resouceId]);
                 }
                 break;
             default :
-                    $this->eligibleToImprove[$resouceId] = $bool;
-                    $this->emit('canBeImproved', $resouceId, $bool);
+                $this->eligibleToImprove[$resouceId] = $bool;
+                $this->emit('canBeImproved', $resouceId, $bool, $this->resourcesNeededToImprove[$resouceId]);
                 break;
         }
     }
@@ -320,55 +321,66 @@ class TotalResources extends Component
     }
 
 
-    private function addToDebt($id) {
+    private function addDebt($id) {
         $this->totals[$id] -= ($this->resourceIncrementAmount[$id]-1);
     }
 
+    private function updateStatuses() {
+        $this->setEnableStatus();
+        $this->setAutomateStatus();
+        $this->setImproveStatus();
+    }
+
     /**
-     * note: add an amount to a resource and check if that allows other resources to be enabled
+     * note: add the current resourceIncrementAmount for a resource to it's total and check if that allows other resources to be enabled
      *
      * @param $id
-     * @param $totalToAdd
      */
-    public function addToTotal($id, $totalToAdd)
+    public function requestGather($id)
     {
-        $this->totals[$id] += $totalToAdd;
-        $this->setEnable();
-        $this->setAutomate();
-        $this->setImprove();
+        if($this->enabled) {
+            $this->totals[$id] += $this->resourceIncrementAmount[$id];
+            $this->updateStatuses();
+        }
     }
 
 
-    public function enable($id)
+    public function requestEnable($id)
     {
+        $this->updateStatuses();
         if($this->eligibleToEnable[$id]) {
             foreach ($this->resourcesNeededToEnable[$id] as $rId => $rAmount) {
                 $this->totals[$rId] -= $rAmount;
             }
             $this->enabled[$id] = true;
             $this->resourceIncrementAmount[$id] = 1;
-                $this->setEnable();
+                $this->setEnableStatus();
         }
+        $this->emit('updateEnable', $id, true);
     }
 
-    public function automate($id)
+    public function requestAutomate($id)
     {
+        $this->updateStatuses();
         if($this->eligibleToAutomate[$id]) {
             foreach ($this->resourcesNeededToAutomate[$id] as $rId => $rAmount) {
                 $this->totals[$rId] -= $rAmount;
             }
             $this->automated[$id] = true;
-            $this->setAutomate();
+            $this->setAutomateStatus();
+            $this->emit('updateAutomate', $id, true);
         }
     }
 
-    public function improve($id, $amount)
+    public function requestImprove($id)
     {
+        $this->updateStatuses();
         if($this->eligibleToImprove[$id]) {
-                $this->totals[$id] -= $this->resourcesNeededToImprove[$id];
-            $this->setImprove();
-            $this->resourceIncrementAmount[$id] = $amount;
+            $this->totals[$id] -= $this->resourcesNeededToImprove[$id];
+            $this->setImproveStatus();
+            $this->resourceIncrementAmount[$id]++;
             $this->setResourcesNeededToImprove($id);
+            $this->emit('updateImprove', $id, $this->resourceIncrementAmount[$id], $this->resourcesNeededToImprove[$id]);
         }
     }
 
@@ -384,7 +396,7 @@ class TotalResources extends Component
     public function checkDebt() {
         foreach ($this->totals as $id => $amount) {
             if($amount < 0) {
-                $this->addToDebt($id);
+                $this->addDebt($id);
             }
         }
     }
