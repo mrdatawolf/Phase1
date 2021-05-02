@@ -3,11 +3,13 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Phase1 Game') }}
         </h2>
-        <div class="w-14 font-semibold text-center bg-blue-500 hover:bg-blue-700 rounded-full">save</div>
     </x-slot>
     <div class="p-4 grid grid-cols-12">
         <div class="col-span-12">
             @livewire('total-resources')
+        </div>
+        <div class="col-span-12">
+            @livewire('banking')
         </div>
         <div class="col-span-12">
             <div class="p-4 grid sm:grid-cols-1 xl:grid-cols-3 gap-4">
