@@ -43,7 +43,6 @@ class Gather extends Component
                 $this->resourcesNeededToEnable[$x] = $amount;
             }
         }
-
     }
     /**
      * @return bool
@@ -95,7 +94,7 @@ class Gather extends Component
     /**
      * tell the parent we want to add to the total for the resource
      */
-    public function requestGather() {
+    public function gather() {
         if($this->enabled) {
             $this->emit('requestGather', $this->resourceId);
         }
@@ -104,7 +103,7 @@ class Gather extends Component
     /**
      * tell the parent we want to improve the resource
      */
-    public function requestImprove() {
+    public function improve() {
         if($this->enabled && $this->canImprove) {
             $this->emit('requestImprove', $this->resourceId);
         }
@@ -115,7 +114,7 @@ class Gather extends Component
     /**
      * tell the parent we want to enable the resource
      */
-    public function requestEnable() {
+    public function enable() {
         if($this->canEnable) {
             $this->enabled = true;
             $this->emit('requestEnable', $this->resourceId);
@@ -126,7 +125,7 @@ class Gather extends Component
     /**
      * tell the parent we want to automate the resource
      */
-    public function requestAutomate() {
+    public function automate() {
         if($this->canAutomate) {
             $this->emit('requestAutomate', $this->resourceId);
         }
