@@ -7,6 +7,7 @@ use Livewire\Component;
 
 class Gather extends Component
 {
+    public $debug = false;
     public $resourceId;
     public $resourceName;
     public $allowed         = false;
@@ -21,6 +22,9 @@ class Gather extends Component
     public $resourcesNeededToAutomate = [];
     public $resourcesNeededToEnable = [];
     public $resources;
+    public $canSell;
+    public $canSendToStorage;
+    public $canSendToTeamStorage;
 
     public $listeners       = ['canBeEnabled', 'canBeAutomated', 'canBeImproved', 'updateImprove', 'updateEnable', 'updateAutomate'];
 
@@ -43,6 +47,10 @@ class Gather extends Component
                 $this->resourcesNeededToEnable[$x] = $amount;
             }
         }
+
+        $this->canSell = true;
+        $this->canSendToStorage = true;
+        $this->canSendToTeamStorage = true;
     }
     /**
      * @return bool
