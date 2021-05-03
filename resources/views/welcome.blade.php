@@ -18,6 +18,61 @@
             body {
                 font-family: 'Nunito', sans-serif;
             }
+            @-webkit-keyframes fadeInOut {
+                100% {
+                    opacity: 1;
+                }
+                84% {
+                    opacity: .84;
+                }
+                50% {
+                    opacity: .5;
+                }
+                32% {
+                    opacity: 0;
+                }
+                16% {
+                    opacity: 0;
+                }
+                0% {
+                    opacity: 0;
+                }
+            }
+            @keyframes fadeInOut {
+                100% {
+                    opacity: 1;
+                }
+                88% {
+                    opacity: .88;
+                }
+                64% {
+                    opacity: .64;
+                }
+                52% {
+                    opacity: .52;
+                }
+                32% {
+                    opacity: 0;
+                }
+                0% {
+                    opacity: 0;
+                }
+            }
+            .more_info {
+                margin: 0 auto;
+                opacity: 1;
+                text-align: center;
+                -webkit-animation: fadeInOut 7s;
+                animation: fadeInOut 7s;
+            }
+
+            .ready_for_more_info {
+                margin: 0 auto;
+                opacity: 1;
+                text-align: center;
+                -webkit-animation: fadeInOut 2s;
+                animation: fadeInOut 2s;
+            }
         </style>
     </head>
     <body class="antialiased">
@@ -25,7 +80,7 @@
             @if (Route::has('login'))
                 <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="text-sm text-gray-700 underline">Phase 1</a>
+                        <a href="{{ url('/dashboard') }}" class="text-sm text-gray-700 underline">Landing</a>
                     @else
                         <a href="{{ route('login') }}" class="text-sm text-gray-700 underline">Log in</a>
 
@@ -34,8 +89,20 @@
                         @endif
                     @endauth
                 </div>
-            @endif
+                <div class="hidden fixed top-0 left-0 px-6 py-4 sm:block">
+                    <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
+                        <span class="ready_for_more_info">When your ready...</span>
+                        <span class="more_info">
+                        @auth
+                            click on Landing over here --->.
+                        @else
+                            click on Register/Login over here --->.
 
+                        @endauth
+                        </span>
+                    </div>
+                </div>
+            @endif
             <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
                 <div class="flex justify-center pt-8 sm:justify-start sm:pt-0">
                     Shall we play a game?

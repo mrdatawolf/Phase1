@@ -6,14 +6,11 @@
     </x-slot>
     <div class="p-4 grid grid-cols-12 main-body">
         <div class="col-span-12">
-            @livewire('total-resources')
-        </div>
-        <div class="col-span-12">
             @livewire('banking')
         </div>
         <div class="col-span-12">
             <div class="p-4 grid sm:grid-cols-1 xl:grid-cols-4 gap-4">
-                what should be on the dashboard?
+                what should be on the bank page?
             </div>
         </div>
     </div>

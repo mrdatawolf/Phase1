@@ -12,8 +12,29 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <x-jet-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        {{ __('Phase1') }}
+                    <x-jet-nav-link href="{{ route('storage') }}" :active="request()->routeIs('storage')">
+                        {{ __('Storage') }}
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('bank') }}" :active="request()->routeIs('bank')">
+                        {{ __('Bank') }}
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('phase1') }}" :active="request()->routeIs('phase1')">
+                        {{ __('Gather') }}
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('forge') }}" :active="request()->routeIs('forge')">
+                        {{ __('Forge') }}
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('merchant') }}" :active="request()->routeIs('merchant')">
+                        {{ __('Merchant') }}
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('taipan') }}" :active="request()->routeIs('taipan')">
+                        {{ __('Tai Pan') }}
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('kingdom') }}" :active="request()->routeIs('kingdom')">
+                        {{ __('Kingdom') }}
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('confederation') }}" :active="request()->routeIs('confederation')">
+                        {{ __('Confederation') }}
                     </x-jet-nav-link>
                 </div>
             </div>
