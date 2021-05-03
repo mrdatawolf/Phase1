@@ -313,7 +313,7 @@ class TotalResources extends Component
     }
 
     private function runAutomatedUpdates($id) {
-        $this->totals[$id] += $this->resourceIncrementAmount[$id]*2;
+        $this->totals[$id] += $this->resourceIncrementAmount[$id]*5;
     }
 
     private function setResourcesNeededToImprove($id) {

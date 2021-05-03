@@ -9,11 +9,8 @@
             @livewire('total-resources')
         </div>
         <div class="col-span-12">
-            @livewire('banking')
-        </div>
-        <div class="col-span-12">
             <div class="p-4 grid sm:grid-cols-1 xl:grid-cols-4 gap-4">
-                what should be on the dashboard?
+                what should be on the storage page?
             </div>
         </div>
     </div>
