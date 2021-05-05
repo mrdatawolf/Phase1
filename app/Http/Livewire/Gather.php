@@ -7,32 +7,41 @@ use Livewire\Component;
 
 class Gather extends Component
 {
-    public $debug                     = false;
     public $resourceId;
     public $resourceName;
-    public $allowed                   = false;
-    public $gatherAmount              = 1;
-    public $improveResourceRequired   = '-';
-    public $automateResourcesRequired = '-';
-    public $canEnable                 = false;
-    public $canAutomate               = false;
-    public $canImprove                = false;
-    public $enabled                   = false;
-    public $automated                 = false;
-    public $resourcesNeededToAutomate = [];
-    public $resourcesNeededToEnable   = [];
+    public $debug                      = false;
+    public $allowed                    = false;
+    public $allowEnable                = false;
+    public $allowAutomate              = false;
+    public $allowAddWorker             = false;
+    public $allowAddTool               = false;
+    public $allowAddForeman            = false;
+    public $enabled                    = false;
+    public $automated                  = false;
+    public $resourcesNeededToAutomate  = [];
+    public $resourcesNeededToEnable    = [];
+    public $totalGather                = 1;
+    public $totalWorkers               = 1;
+    public $totalTools                 = 0;
+    public $totalForemen               = 0;
+    public $automateResourcesRequired  = ' ';
+    public $resourcesRequiredToAddWorker  = ' ';
+    public $resourcesRequiredToAddTool    = ' ';
+    public $resourcesRequiredToAddForeman = ' ';
     public $resources;
-    public $canSell;
-    public $canSendToStorage;
-    public $canSendToTeamStorage;
+    public $allowSell;
+    public $allowSendToStorage;
+    public $allowSendToTeamStorage;
 
     public $listeners = [
         'canBeEnabled',
         'canBeAutomated',
-        'canBeImproved',
-        'updateImprove',
-        'updateEnable',
-        'updateAutomate'
+        'canAddWorker',
+        'canAddTool',
+        'canAddForeman',
+        'toggleEnable',
+        'toggleAutomate',
+        'updateTotal'
     ];
 
 
@@ -57,9 +66,9 @@ class Gather extends Component
             }
         }
 
-        $this->canSell              = false;
-        $this->canSendToStorage     = false;
-        $this->canSendToTeamStorage = false;
+        $this->allowSell              = false;
+        $this->allowSendToStorage     = false;
+        $this->allowSendToTeamStorage = false;
     }
 
 
@@ -81,7 +90,7 @@ class Gather extends Component
     public function canBeEnabled($id, $bool)
     {
         if ($this->resourceId === $id) {
-            $this->canEnable = $bool;
+            $this->allowEnable = $bool;
         }
     }
 
@@ -95,7 +104,7 @@ class Gather extends Component
     public function canBeAutomated($id, $bool, $amount)
     {
         if ($this->resourceId === $id) {
-            $this->canAutomate               = $bool;
+            $this->allowAutomate             = $bool;
             $this->automateResourcesRequired = $amount;
         }
     }
@@ -108,11 +117,43 @@ class Gather extends Component
      * @param $bool
      * @param $amount
      */
-    public function canBeImproved($id, $bool, $amount)
+    public function canAddWorker($id, $bool, $amount)
     {
         if ($this->resourceId === $id) {
-            $this->canImprove              = $bool;
-            $this->improveResourceRequired = $amount;
+            $this->allowAddWorker            = $bool;
+            $this->addWorkerResourceRequired = $amount;
+        }
+    }
+
+
+    /**
+     * note: when the parent wants to let us know about a change in improve possiblity for a resource
+     *
+     * @param $id
+     * @param $bool
+     * @param $amount
+     */
+    public function canAddTool($id, $bool, $amount)
+    {
+        if ($this->resourceId === $id) {
+            $this->allowAddTool              = $bool;
+            $this->addWorkerResourceRequired = $amount;
+        }
+    }
+
+
+    /**
+     * note: when the parent wants to let us know about a change in improve possiblity for a resource
+     *
+     * @param $id
+     * @param $bool
+     * @param $amount
+     */
+    public function canAddForeman($id, $bool, $amount)
+    {
+        if ($this->resourceId === $id) {
+            $this->allowAddForeman           = $bool;
+            $this->addWorkerResourceRequired = $amount;
         }
     }
 
@@ -131,12 +172,36 @@ class Gather extends Component
     /**
      * tell the parent we want to improve the resource
      */
-    public function improve()
+    public function addWorker()
     {
-        if ($this->enabled && $this->canImprove) {
-            $this->emit('requestImprove', $this->resourceId);
+        if ($this->enabled && $this->allowAddWorker) {
+            $this->emit('requestAdd', $this->resourceId, 'worker');
         }
-        $this->canImprove = false;
+        $this->allowAddWorker = false;
+    }
+
+
+    /**
+     * tell the parent we want to improve the resource
+     */
+    public function addTool()
+    {
+        if ($this->enabled && $this->allowAddTool) {
+            $this->emit('requestAdd', $this->resourceId, 'tool');
+        }
+        $this->allowAddTool = false;
+    }
+
+
+    /**
+     * tell the parent we want to improve the resource
+     */
+    public function addForeman()
+    {
+        if ($this->enabled && $this->allowAddForeman) {
+            $this->emit('requestAdd', $this->resourceId, 'foreman');
+        }
+        $this->allowAddForeman = false;
     }
 
 
@@ -145,11 +210,11 @@ class Gather extends Component
      */
     public function enable()
     {
-        if ($this->canEnable) {
+        if ($this->allowEnable) {
             $this->enabled = true;
             $this->emit('requestEnable', $this->resourceId);
         }
-        $this->canEnable = false;
+        $this->allowEnable = false;
     }
 
 
@@ -158,24 +223,40 @@ class Gather extends Component
      */
     public function automate()
     {
-        if ($this->canAutomate) {
+        if ($this->allowAutomate) {
             $this->emit('requestAutomate', $this->resourceId);
         }
     }
 
 
     /**
-     * note: when the parent says an improve event has happened we update our side
+     * note: when the parent says the total of a type has changed
      *
-     * @param $id
-     * @param $resourceIncrementAmount
-     * @param $resourcesNeededToImprove
+     * @param int    $id
+     * @param string $type
+     * @param int    $resourceTypeAmount
+     * @param int    $resourcesNeededToAddType
      */
-    public function updateImprove($id, $resourceIncrementAmount, $resourcesNeededToImprove)
+    public function updateTotal(int $id, string $type, int $resourceTypeAmount, int $resourcesNeededToAddType)
     {
         if ($this->resourceId === $id) {
-            $this->gatherAmount            = $resourceIncrementAmount;
-            $this->improveResourceRequired = $resourcesNeededToImprove;
+            switch ($type) {
+                case 'gather':
+                    $this->totalGather = $resourceTypeAmount;
+                    break;
+                case 'worker':
+                    $this->totalWorkers                 = $resourceTypeAmount;
+                    $this->resourcesRequiredToAddWorker = $resourcesNeededToAddType;
+                    break;
+                case 'tool':
+                    $this->totalTools = $resourceTypeAmount;
+                    $this->resourcesRequiredToAddTool = $resourcesNeededToAddType;
+                    break;
+                case 'foreman':
+                    $this->totalForemen                  = $resourceTypeAmount;
+                    $this->resourcesRequiredToAddForeman = $resourcesNeededToAddType;
+                    break;
+            }
         }
     }
 
@@ -186,7 +267,7 @@ class Gather extends Component
      * @param $id
      * @param $bool
      */
-    public function updateEnable($id, $bool)
+    public function toggleEnable($id, $bool)
     {
         if ($this->resourceId === $id) {
             $this->enabled = $bool;
@@ -200,7 +281,7 @@ class Gather extends Component
      * @param $id
      * @param $bool
      */
-    public function updateAutomate($id, $bool)
+    public function toggleAutomate($id, $bool)
     {
         if ($this->resourceId === $id) {
             $this->automated = $bool;
