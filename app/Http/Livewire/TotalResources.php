@@ -129,16 +129,31 @@ class TotalResources extends Component
         for ($i = 1; $i <= 12; $i++) {
             $this->totals[$i]                       = 0;
             $this->resourceWorkers[$i]              = 1;
-            $this->resourceTools[$i]                = 1;
-            $this->resourceForemen[$i]              = 1;
+            $this->resourceTools[$i]                = 0;
+            $this->resourceForemen[$i]              = 0;
             $this->resourceGatherAmount[$i]         = 1;
             $this->eligibleToEnable[$i]             = false;
             $this->eligibleToAutomate[$i]           = false;
-            $this->automated[$i]                    = false;
             $this->eligibleToAddWorker[$i]          = true;
             $this->eligibleToAddTool[$i]            = true;
             $this->eligibleToAddForeman[$i]         = true;
+            $this->automated[$i]                    = false;
         }
+
+        $this->enabled = [
+            1  => true,
+            2  => false,
+            3  => false,
+            4  => false,
+            5  => false,
+            6  => false,
+            7  => false,
+            8  => false,
+            9  => false,
+            10 => false,
+            11 => false,
+            12 => false
+        ];
         $genericNeeds = [
             1  => 5,
             2  => 10,
@@ -174,21 +189,6 @@ class TotalResources extends Component
             12 => 70
         ];
 
-        $this->enabled = [
-            1  => true,
-            2  => false,
-            3  => false,
-            4  => false,
-            5  => false,
-            6  => false,
-            7  => false,
-            8  => false,
-            9  => false,
-            10 => false,
-            11 => false,
-            12 => false
-        ];
-
         $this->resources           = Resource::get();
         $resourcesNeededToAutomate = AutomateResources::get();
         foreach ($resourcesNeededToAutomate as $data) {
@@ -213,26 +213,6 @@ class TotalResources extends Component
         }
     }
 
-
-    private function setEnableStatus($id)
-    {
-        if ( ! $this->enabled[$id]) {
-            $data      = $this->resourcesNeededToEnable[$id];
-            $canEnable = $this->hasResourcesNeeded($data);
-            $this->updateEligiblity($id, 'enable', $canEnable);
-            $this->emit('updateEnable', $id, true);
-        }
-    }
-
-
-    private function setAutomateStatus($id)
-    {
-        if ($this->enabled[$id] && ! $this->automated[$id]) {
-            $data        = $this->resourcesNeededToAutomate[$id];
-            $canAutomate = $this->hasResourcesNeeded($data);
-            $this->updateEligiblity($id, 'automate', $canAutomate);
-        }
-    }
 
     /*
      * take requests from children
@@ -262,7 +242,7 @@ class TotalResources extends Component
             }
             $this->enabled[$id]         = true;
             $this->resourceWorkers[$id] = 1;
-            $this->setEnableStatus($id);
+            $this->setStatus('enable', $id);
         }
     }
 
@@ -275,8 +255,7 @@ class TotalResources extends Component
                 $this->totals[$rId] -= $rAmount;
             }
             $this->automated[$id] = true;
-            $this->setAutomateStatus($id);
-            $this->emit('updateAutomate', $id, true);
+            $this->setStatus('automated', $id);
         }
     }
 
@@ -410,7 +389,7 @@ class TotalResources extends Component
     }
 
 
-    private function setStatus($type)
+    private function setStatus($type, $id = null)
     {
         switch ($type) {
             case 'worker' :
@@ -435,6 +414,32 @@ class TotalResources extends Component
                         $canAdd = ($this->totals[$resourceId] >= $data);
                         $this->updateEligiblity($resourceId, $type, $canAdd);
                     }
+                }
+                break;
+            case 'canBeEnabled' :
+                if ( ! $this->enabled[$id]) {
+                    $data      = $this->resourcesNeededToEnable[$id];
+                    $canEnable = $this->hasResourcesNeeded($data);
+                    $this->updateEligiblity($id, 'enable', $canEnable);
+                }
+                break;
+            case 'canBeAutomated' :
+                if ($this->enabled[$id] && ! $this->automated[$id]) {
+                    $data        = $this->resourcesNeededToAutomate[$id];
+                    $canAutomate = $this->hasResourcesNeeded($data);
+                    $this->updateEligiblity($id, 'automate', $canAutomate);
+                }
+                break;
+            case 'automate' :
+                if($this->eligibleToAutomate[$id]) {
+                    $this->automated[$id] = true;
+                    $this->emit('toggleAutomate', $id, true);
+                }
+                break;
+            case 'enable' :
+                if($this->eligibleToEnable[$id]) {
+                    $this->enabled[$id] = true;
+                    $this->emit('toggleEnable', $id, true);
                 }
                 break;
         }
@@ -471,8 +476,8 @@ class TotalResources extends Component
 
     private function updateStatus($id)
     {
-        $this->setEnableStatus($id);
-        $this->setAutomateStatus($id);
+        $this->setStatus( 'canBeEnabled', $id);
+        $this->setStatus( 'canBeAutomated', $id);
         $this->setStatus('worker');
         $this->setStatus('tool');
         $this->setStatus('foreman');
@@ -518,6 +523,7 @@ class TotalResources extends Component
                 break;
         }
     }
+
 
 
     /*

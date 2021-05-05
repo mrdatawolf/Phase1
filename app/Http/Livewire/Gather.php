@@ -69,6 +69,24 @@ class Gather extends Component
         $this->allowSell              = false;
         $this->allowSendToStorage     = false;
         $this->allowSendToTeamStorage = false;
+
+        $genericNeeds = [
+            1  => 5,
+            2  => 10,
+            3  => 7,
+            4  => 20,
+            5  => 12,
+            6  => 40,
+            7  => 60,
+            8  => 22,
+            9  => 120,
+            10 => 200,
+            11 => 5,
+            12 => 300
+        ];
+            $this->resourcesRequiredToAddWorker  = $genericNeeds[$this->resourceId];
+            $this->resourcesRequiredToAddTool   = $genericNeeds[$this->resourceId];
+            $this->resourcesRequiredToAddForeman = $genericNeeds[$this->resourceId];
     }
 
 
@@ -104,6 +122,7 @@ class Gather extends Component
     public function canBeAutomated($id, $bool, $amount)
     {
         if ($this->resourceId === $id) {
+
             $this->allowAutomate             = $bool;
             $this->automateResourcesRequired = $amount;
         }
@@ -224,6 +243,7 @@ class Gather extends Component
     public function automate()
     {
         if ($this->allowAutomate) {
+            $this->automated = true;
             $this->emit('requestAutomate', $this->resourceId);
         }
     }
