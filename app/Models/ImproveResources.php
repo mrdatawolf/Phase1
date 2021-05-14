@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Class Parents
  *
+ * note: the resources required to improve a resource
  * @property        $id
  * @property        $resource_id
  * @property        $r1
