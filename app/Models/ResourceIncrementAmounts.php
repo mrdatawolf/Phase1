@@ -14,12 +14,12 @@ use Illuminate\Database\Eloquent\Model;
  * @property        $updated_at
  * @package App\Models
  */
-class ResourceIncrementAmount extends Model
+class ResourceIncrementAmounts extends Model
 {
     use HasFactory;
 
     public $timestamps = true;
-    protected $table = 'resource_increment_amount';
+    protected $table = 'resource_increment_amounts';
     protected $fillable = [
         'user_id',
         'resource_id',
