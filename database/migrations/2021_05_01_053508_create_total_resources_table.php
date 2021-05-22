@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTotalsTable extends Migration
+class CreateTotalResourcesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateTotalsTable extends Migration
      */
     public function up()
     {
-        Schema::create('totals', function (Blueprint $table) {
+        Schema::create('total_resources', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id')->unsigned()->index();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -31,6 +31,6 @@ class CreateTotalsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('totals');
+        Schema::dropIfExists('total_resources');
     }
 }

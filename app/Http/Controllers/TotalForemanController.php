@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Totals;
+use App\Models\TotalForeman;
 use Illuminate\Http\Request;
 
-class TotalsController extends Controller
+class TotalForemanController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +13,7 @@ class TotalsController extends Controller
      */
     public function index()
     {
-        return Totals::all();
+        return TotalForeman::all();
     }
 
     /**
@@ -24,7 +24,7 @@ class TotalsController extends Controller
      */
     public function store(Request $request)
     {
-        return Totals::create($request->all());
+        return TotalForeman::create($request->all());
     }
 
     /**
@@ -35,7 +35,7 @@ class TotalsController extends Controller
      */
     public function show($id)
     {
-        return Totals::find($id);
+        return TotalForeman::find($id);
     }
 
     /**
@@ -47,7 +47,7 @@ class TotalsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $total = Totals::find($id);
+        $total = TotalForeman::find($id);
         $total->update($request->all());
 
         return $total;
@@ -61,7 +61,7 @@ class TotalsController extends Controller
      */
     public function destroy($id)
     {
-        $total = Totals::find($id);
+        $total = TotalForeman::find($id);
         return $total->delete();
     }
 }
