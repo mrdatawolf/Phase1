@@ -142,7 +142,7 @@
                         <div class="p-2 grid grid-cols-5 gap-2 sm:font-mono text-xs">
                             <div>&nbsp;</div>
                             <div>
-                                <span class="material-icons {{ ($allowSell) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="sell">point_of_sale</span>
+                                <span wire:click="sellRequest" class="material-icons {{ ($enabled) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="sell">point_of_sale</span>
                             </div>
                             <div>
                                 <span class="material-icons {{ ($allowSendToStorage) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="My Storage">local_shipping</span>

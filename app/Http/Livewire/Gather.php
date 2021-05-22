@@ -296,6 +296,11 @@ class Gather extends Component
     }
 
 
+    public function sellRequest() {
+        $this->emit('sellRequest', auth()->id(), $this->resourceId);
+    }
+
+
     public function render()
     {
         return view('livewire.gather');
