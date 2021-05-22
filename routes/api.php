@@ -16,6 +16,8 @@ use App\Http\Controllers\ResourceIncrementAmountsController;
 use App\Http\Controllers\TotalForemanController;
 use App\Http\Controllers\TotalToolsController;
 use App\Http\Controllers\TotalWorkersController;
+use App\Http\Controllers\BankController;
+use App\Models\ExchangeRate;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +48,8 @@ Route::resource('resource_increment_amounts', ResourceIncrementAmountsController
 Route::resource('total_foreman', TotalForemanController::class);
 Route::resource('total_tools', TotalToolsController::class);
 Route::resource('total_workers', TotalWorkersController::class);
+Route::resource('bank', BankController::class);
+Route::resource('exchange_rate', ExchangeRate::class);
 /*
 Route::middleware('auth:sanctum')->get('/members/fullid/{id}', [MemberController::class, 'fullid']);
 Route::get('/members/heardfrom/{id}', [MemberController::class, 'heardFrom']);

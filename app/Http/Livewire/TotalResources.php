@@ -9,7 +9,6 @@
  */
 
 use App\Http\Traits\InitialState;
-use App\Models\EnableResources;
 use App\Models\ImproveMultiplier;
 use App\Models\Resource;
 use App\Models\ResourceAutomated;
@@ -126,7 +125,8 @@ class TotalResources extends Component
         'requestAutomate',
         'requestAdd',
         'checkAutomated',
-        'checkDebt'
+        'checkDebt',
+        'bankDeposit'
     ];
 
 
@@ -193,6 +193,11 @@ class TotalResources extends Component
             $re->save();
         }
         $this->enabled[$id] = $re->status;
+    }
+
+    public function bankDeposit($userId, $resourceId, $bAmount, $exAmount) {
+        $this->totals[$resourceId] = 0;
+        $this->updateAllStatus();
     }
 
 
