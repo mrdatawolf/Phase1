@@ -13,7 +13,9 @@ use App\Http\Controllers\ResourceAutomatedController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\ResourceEnabledController;
 use App\Http\Controllers\ResourceIncrementAmountsController;
-use App\Http\Controllers\TotalsController;
+use App\Http\Controllers\TotalForemanController;
+use App\Http\Controllers\TotalToolsController;
+use App\Http\Controllers\TotalWorkersController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,7 +43,9 @@ Route::resource('resource_automated', ResourceAutomatedController::class);
 Route::resource('resource', ResourceController::class);
 Route::resource('resource_enabled', ResourceEnabledController::class);
 Route::resource('resource_increment_amounts', ResourceIncrementAmountsController::class);
-Route::resource('totals', TotalsController::class);
+Route::resource('total_foreman', TotalForemanController::class);
+Route::resource('total_tools', TotalToolsController::class);
+Route::resource('total_workers', TotalWorkersController::class);
 /*
 Route::middleware('auth:sanctum')->get('/members/fullid/{id}', [MemberController::class, 'fullid']);
 Route::get('/members/heardfrom/{id}', [MemberController::class, 'heardFrom']);

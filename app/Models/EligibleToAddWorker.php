@@ -9,20 +9,20 @@ use Illuminate\Database\Eloquent\Model;
  * @property        $id
  * @property        $user_id
  * @property        $resource_id
- * @property        $amount
+ * @property        $status
  * @property        $created_at
  * @property        $updated_at
  * @package App\Models
  */
-class Totals extends Model
+class EligibleToAddWorker extends Model
 {
     use HasFactory;
 
     public $timestamps = true;
-    protected $table = 'totals';
+    protected $table = 'eligible_to_add_worker';
     protected $fillable = [
         'user_id',
         'resource_id',
-        'amount'
+        'status'
     ];
 }

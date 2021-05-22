@@ -1,37 +1,41 @@
 <?php namespace App\Http\Livewire;
 
-use App\Models\AutomateResources;
-use App\Models\EnableResources;
+use App\Http\Traits\InitialState;
 use App\Models\Resource;
+use App\Models\ResourceEnabled;
 use Livewire\Component;
 
 class Gather extends Component
 {
-    public $resourceId;
-    public $resourceName;
-    public $debug                      = false;
-    public $allowed                    = false;
-    public $allowEnable                = false;
-    public $allowAutomate              = false;
-    public $allowAddWorker             = false;
-    public $allowAddTool               = false;
-    public $allowAddForeman            = false;
-    public $enabled                    = false;
-    public $automated                  = false;
-    public $resourcesNeededToAutomate  = [];
-    public $resourcesNeededToEnable    = [];
-    public $totalGather                = 1;
-    public $totalWorkers               = 1;
-    public $totalTools                 = 0;
-    public $totalForemen               = 0;
-    public $automateResourcesRequired  = ' ';
-    public $resourcesRequiredToAddWorker  = ' ';
-    public $resourcesRequiredToAddTool    = ' ';
-    public $resourcesRequiredToAddForeman = ' ';
-    public $resources;
-    public $allowSell;
-    public $allowSendToStorage;
-    public $allowSendToTeamStorage;
+    use InitialState;
+
+    public  $resourceId;
+    public  $resourceName;
+    public  $debug                         = false;
+    public  $allowed                       = false;
+    public  $allowEnable                   = false;
+    public  $allowAutomate                 = false;
+    public  $allowAddWorker                = false;
+    public  $allowAddTool                  = false;
+    public  $allowAddForeman               = false;
+    public  $enabled                       = false;
+    public  $automated                     = false;
+    public  $resourcesNeededToAutomate     = [];
+    public  $resourcesNeededToEnable       = [];
+    public  $totalGatherAmount             = 1;
+    public  $totalWorkers                  = 1;
+    public  $totalTools                    = 0;
+    public  $totalForemen                  = 0;
+    public  $totalResource                 = 0;
+    public  $automateResourcesRequired     = ' ';
+    public  $resourcesRequiredToAddWorker  = ' ';
+    public  $resourcesRequiredToAddTool    = ' ';
+    public  $resourcesRequiredToAddForeman = ' ';
+    public  $resources;
+    public  $allowSell;
+    public  $allowSendToStorage;
+    public  $allowSendToTeamStorage;
+    private $placeholderNeeds;
 
     public $listeners = [
         'canBeEnabled',
@@ -47,46 +51,29 @@ class Gather extends Component
 
     public function mount()
     {
-        $this->resources           = Resource::get();
-        $resourcesNeededToAutomate = AutomateResources::where('resource_id', $this->resourceId)->first();
-        for ($x = 1; $x <= 12; $x++) {
-            $thisId = 'r'.$x;
-            $amount = (int)$resourcesNeededToAutomate->$thisId;
-            if ($amount > 0) {
-                $this->resourcesNeededToAutomate[$x] = $amount;
-            }
-        }
-
-        $resourcesNeededToEnable = EnableResources::where('resource_id', $this->resourceId)->first();
-        for ($x = 1; $x <= 12; $x++) {
-            $thisId = 'r'.$x;
-            $amount = (int)$resourcesNeededToEnable->$thisId;
-            if ($amount > 0) {
-                $this->resourcesNeededToEnable[$x] = $amount;
-            }
-        }
+        $this->enabled = ResourceEnabled::where(['user_id' => auth()->id(), 'resource_id' => $this->resourceId])->first()->status;
+        $this->resources = Resource::get();
+        $this->setPlaceholderValues();
+        $this->getResourcesNeededToAutomate($this->resourceId);
+        $this->getResourcesNeededToEnable($this->resourceId);
+        $this->getAutomationStatus($this->resourceId);
+        $this->totalGatherAmount = $this->gatherResourceIncrementAmount(auth()->id(), $this->resourceId);
+        $this->resourcesRequiredToAddWorker  = $this->getResourcesRequiredToAddWorker($this->resourceId);
+        $this->resourcesRequiredToAddTool    = $this->getResourcesRequiredToAddTool($this->resourceId);
+        $this->resourcesRequiredToAddForeman = $this->getResourcesRequiredToAddForeman($this->resourceId);
 
         $this->allowSell              = false;
         $this->allowSendToStorage     = false;
         $this->allowSendToTeamStorage = false;
-
-        $genericNeeds = [
-            1  => 5,
-            2  => 10,
-            3  => 7,
-            4  => 20,
-            5  => 12,
-            6  => 40,
-            7  => 60,
-            8  => 22,
-            9  => 120,
-            10 => 200,
-            11 => 5,
-            12 => 300
-        ];
-            $this->resourcesRequiredToAddWorker  = $genericNeeds[$this->resourceId];
-            $this->resourcesRequiredToAddTool   = $genericNeeds[$this->resourceId];
-            $this->resourcesRequiredToAddForeman = $genericNeeds[$this->resourceId];
+        $this->totalResource          = $this->gatherTotalResource(auth()->id(), $this->resourceId);
+        $this->totalForemen           = $this->gatherTotalForemen(auth()->id(), $this->resourceId);
+        $this->totalTools             = $this->gatherTotalTools(auth()->id(), $this->resourceId);
+        $this->totalWorkers           = $this->gatherTotalWorkers(auth()->id(), $this->resourceId);
+        $this->allowAddForeman        = $this->isEligibleToAddForeman(auth()->id(), $this->resourceId);
+        $this->allowAddTool           = $this->isEligibleToAddTool(auth()->id(), $this->resourceId);
+        $this->allowAddWorker         = $this->isEligibleToAddWorker(auth()->id(), $this->resourceId);
+        $this->allowAutomate          = $this->isEligibleToAutomate(auth()->id(), $this->resourceId);
+        $this->allowEnable            = $this->isEligibleToEnable(auth()->id(), $this->resourceId);
     }
 
 
@@ -262,14 +249,14 @@ class Gather extends Component
         if ($this->resourceId === $id) {
             switch ($type) {
                 case 'gather':
-                    $this->totalGather = $resourceTypeAmount;
+                    $this->totalGatherAmount = $resourceTypeAmount;
                     break;
                 case 'worker':
                     $this->totalWorkers                 = $resourceTypeAmount;
                     $this->resourcesRequiredToAddWorker = $resourcesNeededToAddType;
                     break;
                 case 'tool':
-                    $this->totalTools = $resourceTypeAmount;
+                    $this->totalTools                 = $resourceTypeAmount;
                     $this->resourcesRequiredToAddTool = $resourcesNeededToAddType;
                     break;
                 case 'foreman':
