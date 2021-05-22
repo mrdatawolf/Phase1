@@ -13,7 +13,7 @@
         </div>
         <div class="col-span-12">
             <div class="p-4 grid sm:grid-cols-1 xl:grid-cols-4 gap-4">
-                <div>
+                <div class="bg-blue-100">
                     Change Log for 05/21/21:
                     Gather:
                     <ol>
@@ -34,7 +34,7 @@
                         </li>
                     </ol>
                 </div>
-                <div>
+                <div class="bg-blue-100">
                     Alpha tester focus:
                     <ol>
                         <li>
