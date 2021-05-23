@@ -55,8 +55,8 @@ class Gather extends Component
         $this->resources = Resource::get();
         $this->setPlaceholderValues();
         $this->getResourcesNeededToAutomate($this->resourceId);
-        $this->getResourcesNeededToEnable($this->resourceId);
         $this->getAutomationStatus($this->resourceId);
+        $this->resourcesNeededToEnable = $this->getResourcesNeededToEnable($this->resourceId);
         $this->totalGatherAmount = $this->gatherResourceIncrementAmount(auth()->id(), $this->resourceId);
         $this->resourcesRequiredToAddWorker  = $this->getResourcesRequiredToAddWorker($this->resourceId);
         $this->resourcesRequiredToAddTool    = $this->getResourcesRequiredToAddTool($this->resourceId);

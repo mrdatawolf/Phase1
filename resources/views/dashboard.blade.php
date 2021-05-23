@@ -12,11 +12,54 @@
             @livewire('banking')
         </div>
         <div class="col-span-12">
+            Known Issues
+        </div>
+        <div class="col-span-3 p-4 bg-red-100">
+           5/23/21:
+            <ul class="list-decimal">
+                <li>
+                    Storage is not implemented
+                </li>
+                <li>
+                    Automate does not show the cost to automate.
+                </li>
+                <li>
+                    Automate does not work offline... this may become intended behaviour.
+                </li>
+            </ul>
+        </div>
+        <div class="col-span-12">
+            Suggestions for current alpha testers:
+        </div>
+        <div class="col-span-3 p-4 bg-yellow-100">
+            <ul class="list-decimal">
+                <li>
+                    Everything... as I have finished the intial banking setup and have not stress tested any of the other parts.
+                </li>
+            </ul>
+        </div>
+        <div class="col-span-12">
+            Change Logs
+        </div>
+        <div class="col-span-12">
             <div class="p-4 grid sm:grid-cols-1 xl:grid-cols-4 gap-4">
-                <div class="bg-blue-100">
-                    Change Log for 05/21/21:
-                    Gather:
-                    <ol>
+                <div class="p-4 bg-blue-100">
+                    05/23/21 - Gather:
+                    <ul class="list-decimal">
+                        <li>
+                            Recourse cards had their ui tweaked.
+                        </li>
+                        <li>
+                            Enable and automate now apply the cost to the stored resource amounts.
+                        </li>
+                        <li>
+                            The amount in bank is now prettier.
+                        </li>
+                    </ul>
+                </div>
+                <div class="p-4 bg-blue-100">
+                    05/21/21 - Gather:
+                    <ul class="list-decimal">
                         <li>
                             Recourse cards had their ui tweaked.
                         </li>
@@ -32,15 +75,7 @@
                         <li>
                             A basic exchange rate has been applied.
                         </li>
-                    </ol>
-                </div>
-                <div class="bg-blue-100">
-                    Alpha tester focus:
-                    <ol>
-                        <li>
-                            Everything as I have finished the intial banking setup and have not stress tested any of the other parts.
-                        </li>
-                    </ol>
+                    </ul>
                 </div>
             </div>
         </div>

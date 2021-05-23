@@ -154,31 +154,35 @@ trait InitialState
     }
 
 
-    public function getResourcesNeededToAutomate($resourceId)
+    public function getResourcesNeededToAutomate($resourceId): array
     {
-        $this->resourcesNeededToAutomate = [];
-        $resourcesNeededToAutomate       = AutomateResources::where('resource_id', $resourceId)->first();
+        $required = [];
+        $resourcesNeeded     = AutomateResources::where('resource_id', $resourceId)->first();
         for ($x = 1; $x <= 12; $x++) {
             $thisId = 'r'.$x;
-            $amount = (int)$resourcesNeededToAutomate->$thisId;
+            $amount = (int) $resourcesNeeded->$thisId;
             if ($amount > 0) {
-                $this->resourcesNeededToAutomate[$x] = $amount;
+                $required[$x] = $amount;
             }
         }
+
+        return $required;
     }
 
 
-    public function getResourcesNeededToEnable($resourceId)
+    public function getResourcesNeededToEnable($resourceId): array
     {
-        $this->resourcesNeededToEnable = [];
-        $resourcesNeededToEnable       = EnableResources::where('resource_id', $resourceId)->first();
+        $required = [];
+        $resourcesNeeded       = EnableResources::where('resource_id', $resourceId)->first();
         for ($x = 1; $x <= 12; $x++) {
             $thisId = 'r'.$x;
-            $amount = (int)$resourcesNeededToEnable->$thisId;
+            $amount = (int) $resourcesNeeded->$thisId;
             if ($amount > 0) {
-                $this->resourcesNeededToEnable[$x] = $amount;
+                $required[$x] = $amount;
             }
         }
+
+        return $required;
     }
 
     public function getAutomationStatus($resourceId) {
