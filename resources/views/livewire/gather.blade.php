@@ -7,12 +7,20 @@
             <div class="col-span-6">
                 @if(! $enabled)
                     <div wire:key="enable_{{ $resourceId }}" wire:click="enable">
-                        <span class="material-icons {{ ($allowEnable) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="enable">lightbulb</span>
+                        <span class="material-icons {{ ($allowEnable) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="Enable at a cost of:
+                        @foreach($resourcesNeededToEnable as $id => $total)
+                            {{ $this->resources->where('id',$id)->pluck('name')->first() }}- {{ $total }},
+                        @endforeach
+                        ">lightbulb</span>
                     </div>
                 @else
                     @if(! $automated)
                         <div wire:key="automate_{{ $resourceId }}" wire:click="automate">
-                            <span class="material-icons {{ ($allowAutomate) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="automate">autorenew</span>
+                            <span class="material-icons {{ ($allowAutomate) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="Automate at a cost of:
+                            @foreach($resourcesNeededToAutomate as $id => $total)
+                                {{ $this->resources->where('id',$id)->pluck('name')->first() }} - {{ $total }},
+                            @endforeach
+                            ">autorenew</span>
                         </div>
                     @else
                         <div>&nbsp;</div>
@@ -54,11 +62,9 @@
                 <div class="col-span-4 grid grid-cols-3">
                     @if(! $automated && $enabled)
                         <div>&nbsp;</div>
-                        <div wire:key="gather_{{ $resourceId }}" wire:click="gather" class="align-left {{ ($enabled) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full">
-                            <span class="material-icons" title="{{__('Gather ' . $resourceName)}}">add</span>
-                            @if($enabled)
-                                <span title="Gather Amount"> {{ $totalGatherAmount }}</span>
-                            @endif
+                        <div wire:key="gather_{{ $resourceId }}" wire:click="gather" class="grid gird-cols-1 align-left {{ ($enabled) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full">
+                            <div><span class="material-icons" title="{{__('Gather ' . $totalGatherAmount . ' ' .  $resourceName)}}">add</span>
+                            </div><div><span title="Gather Amount">{{ $totalGatherAmount }}</span></div>
                         </div>
                         <div>&nbsp;</div>
                     @elseif($automated)
@@ -71,27 +77,7 @@
                 </div>
                 <div class="col-span-2 row-span-5">
                     <div>
-                        @if(! $enabled)
-                            <div class="header text-right text-white"><span class="material-icons bg-gray-500 hover:bg-gray-700 rounded-full" title="enable cost">lightbulb</span> Cost</div>
-                            <div class="body text-right text-white">
-                                @foreach($resourcesNeededToEnable as $id => $total)
-                                    <div class="text-sm font-bold">{{ $this->resources->where('id',$id)->pluck('name')->first() }}
-                                        - {{ $total }}</div>
-                                @endforeach
-                            </div>
-                        @else
-                            @if(! $automated)
-                                <div class="header text-right"><span class="material-icons bg-gray-500 hover:bg-gray-700 rounded-full" title="automate cost">autorenew</span> Cost</div>
-                                <div class="body text-right">
-                                    @foreach($resourcesNeededToAutomate as $id => $total)
-                                        <div class="text-sm font-bold">{{ $this->resources->where('id',$id)->pluck('name')->first() }}
-                                            - {{ $total }}</div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div>&nbsp;</div>
-                            @endif
-                        @endif
+                        &nbsp;
                     </div>
                 </div>
                 <div class="col-span-4">
