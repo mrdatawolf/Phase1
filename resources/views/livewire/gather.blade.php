@@ -69,7 +69,7 @@
                         <div>&nbsp;</div>
                     @elseif($automated)
                         <div>&nbsp;</div>
-                        <span title="Gather Amount"> {{ $totalGatherAmount }}</span>
+                        <div class="bg-gray-500 hover:bg-gray-700 rounded-full"><span title="Gather Amount"> {{ $totalGatherAmount }}</span></div>
                         <div>&nbsp;</div>
                     @else
                         <div class="col-span-3">&nbsp;</div>

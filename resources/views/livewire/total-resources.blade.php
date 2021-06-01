@@ -3,7 +3,7 @@
     @foreach($resources as $resource)
     <div class="rounded bg-gray-300 grid grid-cols-1 min-w-20">
         <div><label>{{ ucfirst($resource->name) }}:</label></div>
-        <div>{{ $totals[$resource->id] }}</div>
+        <div>@convert($totals[$resource->id])</div>
     </div>
     @endforeach
 </div>
