@@ -19,6 +19,7 @@ use App\Http\Controllers\TotalWorkersController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\AuthController;
 use App\Models\ExchangeRate;
+use App\Http\Controllers\InitialGather;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('total_workers', TotalWorkersController::class);
     Route::resource('bank', BankController::class);
     Route::resource('exchange_rate', ExchangeRate::class);
+    Route::resource('initial_gather', InitialGather::class);
 });
 
 /*
