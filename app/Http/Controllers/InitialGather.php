@@ -92,7 +92,66 @@ class InitialGather extends Controller
      */
     public function show($id)
     {
-        return Resource::find($id);
+        switch($id) {
+            case 1:
+                $return = [
+                    'ID'            => 1,
+                    'Name'          => "Stone",
+                    'Amount'        => 1,
+                    'GatherRate'    => 2,
+                    'Workers'       => 2,
+                    'Tools'         => 2,
+                    'Foremen'       => 2,
+                    'Automated'     => false,
+                    'CanAutomate'   => false,
+                    'Enabled'       => true,
+                    'CanEnable'     => true,
+                    'CanAddWorker'  => false,
+                    'CanAddTool'    => false,
+                    'CanAddForeman' => false
+                ];
+                break;
+            case 2:
+                $return = [
+                    'ID'            => 2,
+                    'Name'          => "Water",
+                    'Amount'        => 2,
+                    'GatherRate'    => 4,
+                    'Workers'       => 2,
+                    'Tools'         => 2,
+                    'Foremen'       => 0,
+                    'Automated'     => true,
+                    'CanAutomate'   => true,
+                    'Enabled'       => false,
+                    'CanEnable'     => false,
+                    'CanAddWorker'  => false,
+                    'CanAddTool'    => false,
+                    'CanAddForeman' => false
+                ];
+                break;
+            case 3:
+                $return = [
+                    'ID'            => 3,
+                    'Name'          => "Iron",
+                    'Amount'        => 0,
+                    'GatherRate'    => 0,
+                    'Workers'       => 0,
+                    'Tools'         => 0,
+                    'Foremen'       => 0,
+                    'Automated'     => false,
+                    'CanAutomate'   => false,
+                    'Enabled'       => true,
+                    'CanEnable'     => true,
+                    'CanAddWorker'  => false,
+                    'CanAddTool'    => false,
+                    'CanAddForeman' => false
+                ];
+                break;
+            default:
+                $return = [];
+        }
+
+        return json_encode($return);
     }
 
 
