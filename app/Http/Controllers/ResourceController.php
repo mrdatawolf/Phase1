@@ -64,4 +64,9 @@ class ResourceController extends Controller
         $total = Resource::find($id);
         return $total->delete();
     }
+
+    public function ids() {
+        dd('here', Resource::all()->pluck('id'));
+        return Resource::all()->pluck('id');
+    }
 }

@@ -36,30 +36,31 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout']);
 
-
 Route::middleware('auth:sanctum')->group(function () {
-    Route::resource('automate_resources', AutomateResourcesController::class);
-    Route::resource('eligible_to_automate', EligibleToAutomateController::class);
-    Route::resource('eligible_to_enable', EligibleToEnableController::class);
-    Route::resource('eligible_to_improve', EligibleToImproveController::class);
-    Route::resource('enable_resources', EnableResourcesController::class);
-    Route::resource('improve_multiplier', ImproveMultiplierController::class);
-    Route::resource('improve_resources', ImproveResourcesController::class);
-    Route::resource('resource_automated', ResourceAutomatedController::class);
-    Route::resource('resource', ResourceController::class);
-    Route::resource('resource_enabled', ResourceEnabledController::class);
-    Route::resource('resource_increment_amounts', ResourceIncrementAmountsController::class);
-    Route::resource('total_foreman', TotalForemanController::class);
-    Route::resource('total_tools', TotalToolsController::class);
-    Route::resource('total_workers', TotalWorkersController::class);
-    Route::resource('bank', BankController::class);
-    Route::resource('exchange_rate', ExchangeRate::class);
-    Route::resource('initial_gather', InitialGather::class);
+    Route::get('/resources/ids', [ResourceController::class, 'ids']);
+    Route::apiResources([
+        'automate_resources'         => AutomateResourcesController::class,
+        'eligible_to_automate'       => EligibleToAutomateController::class,
+        'eligible_to_enable'         => EligibleToEnableController::class,
+        'eligible_to_improve'        => EligibleToImproveController::class,
+        'enable_resources'           => EnableResourcesController::class,
+        'improve_multiplier'         => ImproveMultiplierController::class,
+        'improve_resources'          => ImproveResourcesController::class,
+        'resource_automated'         => ResourceAutomatedController::class,
+        'resources'                  => ResourceController::class,
+        'resource_enabled'           => ResourceEnabledController::class,
+        'resource_increment_amounts' => ResourceIncrementAmountsController::class,
+        'total_foreman'              => TotalForemanController::class,
+        'total_tools'                => TotalToolsController::class,
+        'total_workers'              => TotalWorkersController::class,
+        'bank'                       => BankController::class,
+        'exchange_rate'              => ExchangeRate::class,
+        'initial_gather'             => InitialGather::class
+    ]);
 });
 
 /*
