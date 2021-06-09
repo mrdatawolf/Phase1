@@ -14,54 +14,56 @@ class InitialGather extends Controller
     public function index(): string
     {
         $return = [
-            1 => [
-                'ID'            => 1,
-                'Name'          => "Stone",
-                'Amount'        => 1,
-                'GatherRate'    => 2,
-                'Workers'       => 2,
-                'Tools'         => 2,
-                'Foremen'       => 2,
-                'Automated'     => false,
-                'CanAutomate'   => false,
-                'Enabled'       => true,
-                'CanEnable'     => true,
-                'CanAddWorker'  => false,
-                'CanAddTool'    => false,
-                'CanAddForeman' => false
-            ],
-            2 => [
-                'ID'            => 2,
-                'Name'          => "Water",
-                'Amount'        => 2,
-                'GatherRate'    => 4,
-                'Workers'       => 2,
-                'Tools'         => 2,
-                'Foremen'       => 0,
-                'Automated'     => true,
-                'CanAutomate'   => true,
-                'Enabled'       => false,
-                'CanEnable'     => false,
-                'CanAddWorker'  => false,
-                'CanAddTool'    => false,
-                'CanAddForeman' => false
-            ],
-            3 => [
-                'ID'            => 3,
-                'Name'          => "Iron",
-                'Amount'        => 0,
-                'GatherRate'    => 0,
-                'Workers'       => 0,
-                'Tools'         => 0,
-                'Foremen'       => 0,
-                'Automated'     => false,
-                'CanAutomate'   => false,
-                'Enabled'       => true,
-                'CanEnable'     => true,
-                'CanAddWorker'  => false,
-                'CanAddTool'    => false,
-                'CanAddForeman' => false
-            ],
+            'resources' => [
+                1 => [
+                    'ID'            => 1,
+                    'Name'          => "Stone",
+                    'Amount'        => 1,
+                    'GatherRate'    => 2,
+                    'Workers'       => 2,
+                    'Tools'         => 2,
+                    'Foremen'       => 2,
+                    'Automated'     => false,
+                    'CanAutomate'   => false,
+                    'Enabled'       => true,
+                    'CanEnable'     => true,
+                    'CanAddWorker'  => false,
+                    'CanAddTool'    => false,
+                    'CanAddForeman' => false
+                ],
+                2 => [
+                    'ID'            => 2,
+                    'Name'          => "Water",
+                    'Amount'        => 2,
+                    'GatherRate'    => 4,
+                    'Workers'       => 2,
+                    'Tools'         => 2,
+                    'Foremen'       => 0,
+                    'Automated'     => true,
+                    'CanAutomate'   => true,
+                    'Enabled'       => false,
+                    'CanEnable'     => false,
+                    'CanAddWorker'  => false,
+                    'CanAddTool'    => false,
+                    'CanAddForeman' => false
+                ],
+                3 => [
+                    'ID'            => 3,
+                    'Name'          => "Iron",
+                    'Amount'        => 0,
+                    'GatherRate'    => 0,
+                    'Workers'       => 0,
+                    'Tools'         => 0,
+                    'Foremen'       => 0,
+                    'Automated'     => false,
+                    'CanAutomate'   => false,
+                    'Enabled'       => true,
+                    'CanEnable'     => true,
+                    'CanAddWorker'  => false,
+                    'CanAddTool'    => false,
+                    'CanAddForeman' => false
+                ],
+            ]
         ];
 
         return json_encode($return);
