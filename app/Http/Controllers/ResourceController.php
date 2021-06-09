@@ -66,7 +66,6 @@ class ResourceController extends Controller
     }
 
     public function ids() {
-        dd('here', Resource::all()->pluck('id'));
-        return Resource::all()->pluck('id');
+        return Resource::all()->pluck('id')->jsonSerialize();
     }
 }
