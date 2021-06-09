@@ -25,4 +25,14 @@ class ResourceEnabled extends Model
         'resource_id',
         'status'
     ];
+
+    public function resource(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Resource::class);
+    }
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }
