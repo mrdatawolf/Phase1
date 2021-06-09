@@ -58,7 +58,7 @@ class InitialGather extends Controller
      *
      * @return null
      */
-    public function show($id)
+    public function show(int $id)
     {
         $resource = Resource::find($id);
         $return = [
