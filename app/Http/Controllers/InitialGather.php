@@ -13,24 +13,25 @@ class InitialGather extends Controller
      */
     public function index(): string
     {
+        $userId = auth()->user()->id;
         $resources = Resource::all();
         $return['resources'] = [];
         foreach($resources as $resource) {
             $return['resources'][] = [
                 'ID'            => $resource->id,
                 'Name'          => $resource->name,
-                'Amount'        => $resource->amount(),
-                'GatherRate'    => $resource->resourceIncrementAmount(),
-                'Workers'       => $resource->totalWorkers(),
-                'Tools'         => $resource->totalTools(),
-                'Foremen'       => $resource->totalForeman(),
-                'Automated'     => $resource->isAutomated(),
-                'CanAutomate'   => $resource->canAutomate(),
-                'Enabled'       => $resource->isEnabled(),
-                'CanEnable'     => $resource->canEnable(),
-                'CanAddWorker'  => $resource->canAddWorker(),
-                'CanAddTool'    => $resource->canAddTool(),
-                'CanAddForeman' => $resource->canAddForeman()
+                'Amount'        => $resource->amount($userId),
+                'GatherRate'    => $resource->resourceIncrementAmount($userId),
+                'Workers'       => $resource->totalWorkers($userId),
+                'Tools'         => $resource->totalTools($userId),
+                'Foremen'       => $resource->totalForeman($userId),
+                'Automated'     => $resource->isAutomated($userId),
+                'CanAutomate'   => $resource->canAutomate($userId),
+                'Enabled'       => $resource->isEnabled($userId),
+                'CanEnable'     => $resource->canEnable($userId),
+                'CanAddWorker'  => $resource->canAddWorker($userId),
+                'CanAddTool'    => $resource->canAddTool($userId),
+                'CanAddForeman' => $resource->canAddForeman($userId)
             ];
         }
 
@@ -60,22 +61,23 @@ class InitialGather extends Controller
      */
     public function show(int $id)
     {
+        $userId = auth()->user()->id;
         $resource = Resource::find($id);
         $return = [
             'ID'            => $resource->id,
             'Name'          => $resource->name,
-            'Amount'        => $resource->amount(),
-            'GatherRate'    => $resource->resourceIncrementAmount(),
-            'Workers'       => $resource->totalWorkers(),
-            'Tools'         => $resource->totalTools(),
-            'Foremen'       => $resource->totalForeman(),
-            'Automated'     => $resource->isAutomated(),
-            'CanAutomate'   => $resource->canAutomate(),
-            'Enabled'       => $resource->isEnabled(),
-            'CanEnable'     => $resource->canEnable(),
-            'CanAddWorker'  => $resource->canAddWorker(),
-            'CanAddTool'    => $resource->canAddTool(),
-            'CanAddForeman' => $resource->canAddForeman()
+            'Amount'        => $resource->amount($userId),
+            'GatherRate'    => $resource->resourceIncrementAmount($userId),
+            'Workers'       => $resource->totalWorkers($userId),
+            'Tools'         => $resource->totalTools($userId),
+            'Foremen'       => $resource->totalForeman($userId),
+            'Automated'     => $resource->isAutomated($userId),
+            'CanAutomate'   => $resource->canAutomate($userId),
+            'Enabled'       => $resource->isEnabled($userId),
+            'CanEnable'     => $resource->canEnable($userId),
+            'CanAddWorker'  => $resource->canAddWorker($userId),
+            'CanAddTool'    => $resource->canAddTool($userId),
+            'CanAddForeman' => $resource->canAddForeman($userId)
         ];
 
 

@@ -1,6 +1,8 @@
 <?php namespace App\Http\Livewire;
 
 use App\Http\Traits\InitialState;
+use App\Http\Traits\IsEligibleTo;
+use App\Http\Traits\ResourcesRequired;
 use App\Models\Resource;
 use App\Models\ResourceEnabled;
 use Livewire\Component;
@@ -8,6 +10,8 @@ use Livewire\Component;
 class Gather extends Component
 {
     use InitialState;
+    use IsEligibleTo;
+    use ResourcesRequired;
 
     public  $resourceId;
     public  $resourceName;
@@ -35,7 +39,6 @@ class Gather extends Component
     public  $allowSell;
     public  $allowSendToStorage;
     public  $allowSendToTeamStorage;
-    private $placeholderNeeds;
 
     public $listeners = [
         'canBeEnabled',
@@ -53,7 +56,6 @@ class Gather extends Component
     {
         $this->enabled = ResourceEnabled::where(['user_id' => auth()->id(), 'resource_id' => $this->resourceId])->first()->status;
         $this->resources = Resource::get();
-        $this->setPlaceholderValues();
         $this->getResourcesNeededToAutomate($this->resourceId);
         $this->getAutomationStatus($this->resourceId);
         $this->resourcesNeededToEnable = $this->getResourcesNeededToEnable($this->resourceId);
@@ -127,7 +129,6 @@ class Gather extends Component
     {
         if ($this->resourceId === $id) {
             $this->allowAddWorker            = $bool;
-            $this->addWorkerResourceRequired = $amount;
         }
     }
 
@@ -143,7 +144,6 @@ class Gather extends Component
     {
         if ($this->resourceId === $id) {
             $this->allowAddTool              = $bool;
-            $this->addWorkerResourceRequired = $amount;
         }
     }
 
@@ -159,7 +159,6 @@ class Gather extends Component
     {
         if ($this->resourceId === $id) {
             $this->allowAddForeman           = $bool;
-            $this->addWorkerResourceRequired = $amount;
         }
     }
 
