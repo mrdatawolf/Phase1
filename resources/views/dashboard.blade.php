@@ -47,7 +47,7 @@
                     05/23/21 - Gather:
                     <ul class="list-decimal">
                         <li>
-                            Recourse cards had their ui tweaked.
+                            Resource cards had their ui tweaked.
                         </li>
                         <li>
                             Enable and automate now apply the cost to the stored resource amounts.
@@ -61,7 +61,7 @@
                     05/21/21 - Gather:
                     <ul class="list-decimal">
                         <li>
-                            Recourse cards had their ui tweaked.
+                            Resource cards had their ui tweaked.
                         </li>
                         <li>
                             The gather rate, worker count, tool count and foreman count are now stored.

@@ -20,6 +20,7 @@ use App\Http\Controllers\BankController;
 use App\Http\Controllers\AuthController;
 use App\Models\ExchangeRate;
 use App\Http\Controllers\InitialGather;
+use App\Http\Controllers\AddController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +43,7 @@ Route::post('logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/resources/ids', [ResourceController::class, 'ids']);
+    Route::put('add/{type}/{resourceId}', [AddController::class, 'addImprovement']);
     Route::apiResources([
         'automate_resources'         => AutomateResourcesController::class,
         'eligible_to_automate'       => EligibleToAutomateController::class,
@@ -59,7 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
         'total_workers'              => TotalWorkersController::class,
         'bank'                       => BankController::class,
         'exchange_rate'              => ExchangeRate::class,
-        'initial_gather'             => InitialGather::class
+        'initial_gather'             => InitialGather::class,
+        'current_numbers'            => InitialGather::class,
+        'add'                        => AddController::class
     ]);
 });
 

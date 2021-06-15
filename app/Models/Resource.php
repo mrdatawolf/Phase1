@@ -37,66 +37,51 @@ class Resource extends Model
         return $this->hasMany(TotalResources::class)->wherePivot('user_id', auth()->user()->id);
     }
 
-    public function isAutomated(): bool
+    public function isAutomated($userId): bool
     {
-        $userId = auth()->user()->id;
         return (ResourceAutomated::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && ResourceEnabled::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
     }
 
-    public function isEnabled(): bool
+    public function isEnabled($userId): bool
     {
-        $userId = auth()->user()->id;
-
         return (ResourceEnabled::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && ResourceEnabled::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
     }
 
-    public function canAutomate(): bool
+    public function canAutomate($userId): bool
     {
-        $userId = auth()->user()->id;
-
         return (EligibleToAutomate::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && EligibleToAutomate::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
     }
 
-    public function canEnable(): bool
+    public function canEnable($userId): bool
     {
-        $userId = auth()->user()->id;
-
         return (EligibleToEnable::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && EligibleToEnable::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
     }
 
-    public function canAddWorker(): bool
+    public function canAddWorker($userId): bool
     {
-        $userId = auth()->user()->id;
-
         return (EligibleToAddWorker::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && EligibleToAddWorker::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
     }
 
-    public function canAddTool(): bool
+    public function canAddTool($userId): bool
     {
-        $userId = auth()->user()->id;
-
         return (EligibleToAddTool::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && EligibleToAddTool::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
     }
 
-    public function canAddForeman(): bool
+    public function canAddForeman($userId): bool
     {
-        $userId = auth()->user()->id;
-
         return (EligibleToAddForeman::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && EligibleToAddForeman::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
     }
 
-    public function amount() : int
+    public function amount($userId) : int
     {
-        $userId = auth()->user()->id;
         if(TotalResources::where(['resource_id' => $this->id, 'user_id' => $userId])->exists()) {
             return TotalResources::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->amount;
         }
 
         return 0;
     }
-    public function resourceIncrementAmount() : int
+    public function resourceIncrementAmount($userId) : int
     {
-        $userId = auth()->user()->id;
         if(ResourceIncrementAmounts::where(['resource_id' => $this->id, 'user_id' => $userId])->exists()) {
             return ResourceIncrementAmounts::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->amount;
         }
@@ -104,9 +89,8 @@ class Resource extends Model
         return 0;
     }
 
-    public function totalWorkers() : int
+    public function totalWorkers($userId) : int
     {
-        $userId = auth()->user()->id;
         if(TotalWorkers::where(['resource_id' => $this->id, 'user_id' => $userId])->exists()) {
             return TotalWorkers::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->amount;
         }
@@ -114,9 +98,8 @@ class Resource extends Model
         return 0;
     }
 
-    public function totalTools() : int
+    public function totalTools($userId) : int
     {
-        $userId = auth()->user()->id;
         if(TotalTools::where(['resource_id' => $this->id, 'user_id' => $userId])->exists()) {
             return TotalTools::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->amount;
         }
@@ -124,9 +107,8 @@ class Resource extends Model
         return 0;
     }
 
-    public function totalForeman() : int
+    public function totalForeman($userId) : int
     {
-        $userId = auth()->user()->id;
         if(TotalForeman::where(['resource_id' => $this->id, 'user_id' => $userId])->exists()) {
             return TotalForeman::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->amount;
         }

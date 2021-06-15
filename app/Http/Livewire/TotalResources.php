@@ -9,6 +9,9 @@
  */
 
 use App\Http\Traits\InitialState;
+use App\Http\Traits\IsEligibleTo;
+use App\Http\Traits\PayFor;
+use App\Http\Traits\UpdateResourceTotal;
 use App\Models\EligibleToAddTool;
 use App\Models\EligibleToAddWorker;
 use App\Models\EligibleToAutomate;
@@ -17,15 +20,14 @@ use App\Models\ImproveMultiplier;
 use App\Models\Resource;
 use App\Models\ResourceAutomated;
 use App\Models\ResourceEnabled;
-use App\Models\ResourceIncrementAmounts;
-use App\Models\TotalForeman;
-use App\Models\TotalTools;
-use App\Models\TotalWorkers;
 use Livewire\Component;
 
 class TotalResources extends Component
 {
     use InitialState;
+    use IsEligibleTo;
+    use UpdateResourceTotal;
+    use PayFor;
 
     public $totals;
     /**
@@ -121,7 +123,6 @@ class TotalResources extends Component
     public $enabled;
     public $automated;
     public $resources;
-    public $placeholderNeeds;
 
     public $listeners = [
         'requestGather',
@@ -137,9 +138,8 @@ class TotalResources extends Component
     public function mount()
     {
         $this->resources = Resource::get();
-        $this->setPlaceholderValues();
+        $this->updateCurrentResourceTotals();
         foreach ($this->resources as $resource) {
-            $this->totals[$resource->id]               = $this->gatherTotalResource(auth()->id(), $resource->id);
             $this->resourceWorkers[$resource->id]      = $this->gatherTotalWorkers(auth()->id(), $resource->id);
             $this->resourceTools[$resource->id]        = $this->gatherTotalTools(auth()->id(), $resource->id);
             $this->resourceForemen[$resource->id]      = $this->gatherTotalForemen(auth()->id(), $resource->id);
@@ -153,8 +153,8 @@ class TotalResources extends Component
             $this->automated[$resource->id]            = $this->isAutomated(auth()->id(), $resource->id);
             $this->improveMultiplier[$resource->id]    = $this->getImproveMultiplier($resource->id);
             $this->gatherEnableStatus($resource->id);
-            $this->resourcesNeededToAutomate[$resource->id] = $this->getResourcesNeededToAutomate($resource->id);
-            $this->resourcesNeededToEnable[$resource->id] = $this->getResourcesNeededToEnable($resource->id);
+            $this->resourcesNeededToAutomate[$resource->id]   = $this->getResourcesNeededToAutomate($resource->id);
+            $this->resourcesNeededToEnable[$resource->id]     = $this->getResourcesNeededToEnable($resource->id);
             $this->resourcesNeededToAddWorker[$resource->id]  = $this->getResourcesRequiredToAddWorker($resource->id);
             $this->resourcesNeededToAddTool[$resource->id]    = $this->getResourcesRequiredToAddTool($resource->id);
             $this->resourcesNeededToAddForeman[$resource->id] = $this->getResourcesRequiredToAddForeman($resource->id);
@@ -198,7 +198,9 @@ class TotalResources extends Component
         $this->enabled[$id] = $re->status;
     }
 
-    public function bankDeposit($userId, $resourceId, $bAmount, $exAmount) {
+
+    public function bankDeposit($userId, $resourceId, $bAmount, $exAmount)
+    {
         $this->totals[$resourceId] = 0;
         $this->updateAllStatus();
     }
@@ -212,14 +214,15 @@ class TotalResources extends Component
      * note: add the current resourceIncrementAmount for a resource to it's total and check if that allows other
      * resources to be enabled
      *
-     * @param $id
+     * @param     $id
+     * @param int $multiplier
      */
-    public function requestGather($id, $multiplier = 1)
+    public function requestGather($id, int $multiplier = 1)
     {
         if ($this->enabled[$id]) {
 
             $tr         = \App\Models\TotalResources::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
-            $tr->amount += $this->resourceGatherAmount[$id]* $multiplier;
+            $tr->amount += $this->resourceGatherAmount[$id] * $multiplier;
             $tr->save();
             $this->totals[$id] = $tr->amount;
 
@@ -228,20 +231,28 @@ class TotalResources extends Component
     }
 
 
-    public function requestEnable($id)
+    public function requestEnable($resourceId)
     {
-        $this->updateStatus($id);
-        if ($this->eligibleToEnable[$id]) {
-            foreach ($this->resourcesNeededToEnable[$id] as $rId => $rAmount) {
-                $this->totals[$rId] -= $rAmount;
-            }
-            $re         = ResourceEnabled::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
+        $this->updateStatus($resourceId);
+        if ($this->eligibleToEnable[$resourceId]) {
+            $this->payForAddition($resourceId, 'enable');
+            $re         = ResourceEnabled::where(['user_id' => auth()->id(), 'resource_id' => $resourceId])->first();
             $re->status = true;
             $re->save();
-            $this->enabled[$id] = $re->status;
-            $this->payForAddition($id, 'enable');
-            $this->updateResourceTypeTotal($id, 'worker');
-            $this->setStatus('enable', $id);
+            $this->enabled[$resourceId] = $re->status;
+            $resourceTypeAmount         = $this->updateResourceTypeTotal($resourceId, 'worker');
+            $resourcesNeededToAddType   = $this->getResourcesRequiredToAddWorker($resourceId);
+            if ( ! empty($resourceTypeAmount) && ( ! empty($resourcesNeededToAddType) || $resourcesNeededToAddType === 0)) {
+                $this->emit('updateTotal', $resourceId, 'worker', $resourceTypeAmount, $resourcesNeededToAddType);
+            }
+            $this->updateResourceGatherAmount($resourceId);
+            $resourcesNeededToAddType = $this->getResourcesRequiredToAddWorker($resourceId);
+            if ( ! empty($resourceTypeAmount) && ( ! empty($resourcesNeededToAddType) || $resourcesNeededToAddType === 0)) {
+                $this->emit('updateTotal', $resourceId, 'worker', $resourceTypeAmount, $resourcesNeededToAddType);
+            }
+            $this->updateResourceGatherAmount($resourceId);
+            $this->setStatus('enable', $resourceId);
+            $this->updateCurrentResourceTotals();
         }
     }
 
@@ -250,28 +261,41 @@ class TotalResources extends Component
     {
         $this->updateStatus($id);
         if ($this->eligibleToAutomate[$id]) {
-            foreach ($this->resourcesNeededToAutomate[$id] as $rId => $rAmount) {
-                $this->totals[$rId] -= $rAmount;
-
-            }
             $ra         = ResourceAutomated::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
             $ra->status = true;
             $ra->save();
             $this->automated[$id] = $ra->status;
             $this->payForAddition($id, 'automate');
             $this->setStatus('automated', $id);
+            $this->updateCurrentResourceTotals();
         }
     }
 
 
-    public function requestAdd($id, $type)
+    public function requestAdd($resourceId, $type)
     {
-        $this->updateStatus($id);
-        if ($this->isEligible($id, $type)) {
-            $this->payForAddition($id, $type);
-            $this->updateResourcesNeeded($id, $type);
-            $this->updateResourceTypeTotal($id, $type);
+        $this->updateStatus($resourceId);
+        if ($this->isEligible($resourceId, $type)) {
+            $this->payForAddition($resourceId, $type);
+            $this->updateResourcesNeeded($resourceId, $type);
+            $resourceTypeAmount = $this->updateResourceTypeTotal($resourceId, $type);
+            switch ($type) {
+                case 'worker':
+                    $resourcesNeededToAddType = $this->getResourcesRequiredToAddWorker($resourceId);
+                    break;
+                case 'tool':
+                    $resourcesNeededToAddType = $this->getResourcesRequiredToAddTool($resourceId);
+                    break;
+                case 'foreman':
+                    $resourcesNeededToAddType = $this->getResourcesRequiredToAddForeman($resourceId);
+                    break;
+            }
+            if ( ! empty($resourceTypeAmount) && ( ! empty($resourcesNeededToAddType) || (isset($resourcesNeededToAddType) && $resourcesNeededToAddType === 0))) {
+                $this->emit('updateTotal', $resourceId, $type, $resourceTypeAmount, $resourcesNeededToAddType);
+            }
+            $this->updateResourceGatherAmount($resourceId);
             $this->updateAllStatus();
+            $this->updateCurrentResourceTotals();
         }
     }
 
@@ -287,89 +311,11 @@ class TotalResources extends Component
      * Take internal actions
      */
 
-    private function updateResourceTypeTotal($id, $type)
-    {
-        switch ($type) {
-            case 'worker' :
-                $tw = TotalWorkers::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
-                $tw->amount++;
-                $tw->save();
-                $this->resourceWorkers[$id] = $tw->amount;
-                $resourceTypeAmount         = $this->resourceWorkers[$id];
-                $resourcesNeededToAddType   = $this->getResourcesRequiredToAddWorker($id);
-                break;
-            case 'tool' :
-                $tt = TotalTools::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
-                $tt->amount++;
-                $tt->save();
-                $this->resourceTools[$id] = $tt->amount;
-                $resourceTypeAmount       = $this->resourceTools[$id];
-                $resourcesNeededToAddType = $this->getResourcesRequiredToAddTool($id);
-                break;
-            case 'foreman' :
-                $tf = TotalForeman::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
-                $tf->amount++;
-                $tf->save();
-                $this->resourceForemen[$id] = $tf->amount;
-                $resourceTypeAmount         = $this->resourceForemen[$id];
-                $resourcesNeededToAddType   = $this->getResourcesRequiredToAddForeman($id);
-                break;
-        }
-        $this->updateResourceGatherAmount($id);
-        if ( ! empty($resourceTypeAmount) && ! empty($resourcesNeededToAddType)) {
-            $this->emit('updateTotal', $id, $type, $resourceTypeAmount, $resourcesNeededToAddType);
+    private function updateCurrentResourceTotals() {
+        foreach ($this->resources as $resource) {
+            $this->totals[$resource->id] = $this->gatherTotalResource(auth()->id(), $resource->id);
         }
     }
-
-
-    private function updateResourceGatherAmount($id)
-    {
-        $toolBoost                       = $this->getToolBoost($id);
-        $foremenBoost                    = $this->getForemanBoost($id);
-        $this->resourceGatherAmount[$id] = (int)round($this->resourceWorkers[$id] * $foremenBoost * $toolBoost, 0);
-        $ria                             = ResourceIncrementAmounts::where(['user_id'     => auth()->id(),
-                                                                            'resource_id' => $id
-        ])->first();
-        $ria->amount                     = $this->resourceGatherAmount[$id];
-        $ria->save();
-        $this->emit('updateTotal', $id, 'gather', $this->resourceGatherAmount[$id], 0);
-    }
-
-
-    private function getToolBoost($id)
-    {
-        $maximumToolsPerWorker = 2;
-        $toolBoost             = 1;
-        if ($this->resourceTools[$id] > 0 && $this->resourceWorkers[$id] > 0) {
-            $toolsUsage = $this->resourceTools[$id] / $this->resourceWorkers[$id];
-            $toolBoost  += ($toolsUsage < $maximumToolsPerWorker) ? $toolsUsage : $maximumToolsPerWorker;
-        }
-
-        return $toolBoost;
-    }
-
-
-    private function getForemanBoost($id)
-    {
-        $maxWorkersPerForeman = 5;
-        $foremenBoost         = 1;
-        $foremen              = $this->resourceForemen[$id];
-        if ($foremen >= 1 && $this->resourceWorkers[$id] >= 1) {
-            $foremenNeeded = (int)round($this->resourceWorkers[$id] / $maxWorkersPerForeman, 0);
-            if ($foremen > $foremenNeeded * 2) {
-                $foremenBoost = 1;
-            } elseif ($foremen > $foremenNeeded) {
-                $foremenBoost += $foremenNeeded - ($foremen / $foremenNeeded) / 2;
-            } elseif ($foremen === $foremenNeeded) {
-                $foremenBoost = $foremenNeeded;
-            } else {
-                $foremenBoost += $foremen / $foremenNeeded;
-            }
-        }
-
-        return $foremenBoost;
-    }
-
 
     /**
      * @param $resourceId
@@ -382,11 +328,11 @@ class TotalResources extends Component
             case 'enable':
                 if ( ! $this->enabled[$resourceId]) {
                     $this->eligibleToEnable[$resourceId] = $bool;
-                    $ete = EligibleToEnable::where([
-                                                        'user_id'     => auth()->id(),
-                                                        'resource_id' => $resourceId
-                                                    ])->first();
-                    $ete->status = $bool;
+                    $ete                                 = EligibleToEnable::where([
+                        'user_id'     => auth()->id(),
+                        'resource_id' => $resourceId
+                    ])->first();
+                    $ete->status                         = $bool;
                     $ete->save();
                     $this->emit('canBeEnabled', $resourceId, $bool);
                 }
@@ -394,27 +340,27 @@ class TotalResources extends Component
             case 'automate' :
                 if ( ! $this->automated[$resourceId]) {
                     $this->eligibleToAutomate[$resourceId] = $bool;
-                    $eta = EligibleToAutomate::where([
+                    $eta                                   = EligibleToAutomate::where([
                         'user_id'     => auth()->id(),
                         'resource_id' => $resourceId
                     ])->first();
-                    $eta->status = $bool;
+                    $eta->status                           = $bool;
                     $eta->save();
                     $this->emit('canBeAutomated', $resourceId, $bool, $this->resourcesNeededToAutomate[$resourceId]);
                 }
                 break;
             case 'worker' :
                 $this->eligibleToAddWorker[$resourceId] = $bool;
-                $etw = EligibleToAddWorker::where([
+                $etw                                    = EligibleToAddWorker::where([
                     'user_id'     => auth()->id(),
                     'resource_id' => $resourceId
                 ])->first();
-                $etw->status = $bool;
+                $etw->status                            = $bool;
                 $etw->save();
                 $this->emit('canAddWorker', $resourceId, $bool, $this->resourcesNeededToAddWorker[$resourceId]);
                 break;
             case 'tool' :
-                $ett = EligibleToAddTool::where([
+                $ett         = EligibleToAddTool::where([
                     'user_id'     => auth()->id(),
                     'resource_id' => $resourceId
                 ])->first();
@@ -549,44 +495,6 @@ class TotalResources extends Component
         }
     }
 
-
-    private function payForAddition($id, $type)
-    {
-        $tr = \App\Models\TotalResources::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
-        switch ($type) {
-            case 'worker' :
-                $tr->amount -= $this->resourcesNeededToAddWorker[$id];
-                $tr->save();
-                $this->totals[$id] = $tr->amount;
-                break;
-            case 'tool' :
-                $tr->amount -= $this->resourcesNeededToAddTool[$id];
-                $tr->save();
-                $this->totals[$id] = $tr->amount;
-                break;
-            case 'foreman' :
-                $tr->amount -= $this->resourcesNeededToAddForeman[$id];
-                $tr->save();
-                $this->totals[$id] = $tr->amount;
-                break;
-            case 'automate' :
-                foreach($this->resourcesNeededToAutomate[$id] as $rId => $rAmount) {
-                    $tr = \App\Models\TotalResources::where(['user_id' => auth()->id(), 'resource_id' => $rId])->first();
-                    $tr->amount -= $rAmount;
-                    $tr->save();
-                    $this->totals[$rId] = $tr->amount;
-                }
-                break;
-            case 'enable' :
-                foreach($this->resourcesNeededToEnable[$id] as $rId => $rAmount) {
-                    $tr = \App\Models\TotalResources::where(['user_id' => auth()->id(), 'resource_id' => $rId])->first();
-                    $tr->amount -= $rAmount;
-                    $tr->save();
-                    $this->totals[$rId] = $tr->amount;
-                }
-                break;
-        }
-    }
 
 
 
