@@ -94,9 +94,9 @@
                         <span class="ready_for_more_info">When your ready...</span>
                         <span class="more_info">
                         @auth
-                            click on Landing over here --->.
+                            click on Landing over here --->
                         @else
-                            click on Register/Login over here --->.
+                            click on Register/Login over here --->
 
                         @endauth
                         </span>
