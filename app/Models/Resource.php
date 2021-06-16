@@ -49,12 +49,30 @@ class Resource extends Model
 
     public function canAutomate($userId): bool
     {
-        return (EligibleToAutomate::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && EligibleToAutomate::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
+        $eligiblity = false;
+        if(! ResourceAutomated::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && ResourceEnabled::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1) {
+            $eligiblity = EligibleToAutomate::where(['resource_id' => $this->id, 'user_id' => $userId])
+                                            ->exists() && EligibleToAutomate::where([
+                    'resource_id' => $this->id,
+                    'user_id'     => $userId
+                ])->first()->status == 1;
+        }
+
+        return ($eligiblity);
     }
 
     public function canEnable($userId): bool
     {
-        return (EligibleToEnable::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && EligibleToEnable::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
+        $eligiblity = false;
+        if(! ResourceEnabled::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() || ResourceEnabled::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1) {
+            $eligiblity = EligibleToEnable::where(['resource_id' => $this->id, 'user_id' => $userId])
+                                          ->exists() && EligibleToEnable::where([
+                    'resource_id' => $this->id,
+                    'user_id'     => $userId
+                ])->first()->status == 1;
+        }
+
+        return ($eligiblity);
     }
 
     public function canAddWorker($userId): bool
