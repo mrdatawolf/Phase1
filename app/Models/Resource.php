@@ -39,7 +39,7 @@ class Resource extends Model
 
     public function isAutomated($userId): bool
     {
-        return (ResourceAutomated::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && ResourceEnabled::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
+        return (ResourceAutomated::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && ResourceAutomated::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1);
     }
 
     public function isEnabled($userId): bool
@@ -50,7 +50,7 @@ class Resource extends Model
     public function canAutomate($userId): bool
     {
         $eligiblity = false;
-        if(! ResourceAutomated::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && ResourceEnabled::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1) {
+        if(! ResourceAutomated::where(['resource_id' => $this->id, 'user_id' => $userId])->exists() && ResourceAutomated::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->status == 1) {
             $eligiblity = EligibleToAutomate::where(['resource_id' => $this->id, 'user_id' => $userId])
                                             ->exists() && EligibleToAutomate::where([
                     'resource_id' => $this->id,
