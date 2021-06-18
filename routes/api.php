@@ -21,6 +21,7 @@ use App\Http\Controllers\AuthController;
 use App\Models\ExchangeRate;
 use App\Http\Controllers\InitialGather;
 use App\Http\Controllers\AddController;
+use App\Http\Controllers\GatherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,9 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
         'total_workers'              => TotalWorkersController::class,
         'bank'                       => BankController::class,
         'exchange_rate'              => ExchangeRate::class,
-        'initial_gather'             => InitialGather::class,
         'current_numbers'            => InitialGather::class,
-        'add'                        => AddController::class
+        'add'                        => AddController::class,
+        'gather'                     => GatherController::class
     ]);
 });
 

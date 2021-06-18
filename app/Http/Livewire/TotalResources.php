@@ -11,14 +11,11 @@
 use App\Http\Traits\InitialState;
 use App\Http\Traits\IsEligibleTo;
 use App\Http\Traits\PayFor;
+use App\Http\Traits\RequestTrait;
+use App\Http\Traits\Status;
 use App\Http\Traits\UpdateResourceTotal;
-use App\Models\EligibleToAddTool;
-use App\Models\EligibleToAddWorker;
-use App\Models\EligibleToAutomate;
-use App\Models\EligibleToEnable;
 use App\Models\ImproveMultiplier;
 use App\Models\Resource;
-use App\Models\ResourceAutomated;
 use App\Models\ResourceEnabled;
 use Livewire\Component;
 
@@ -28,6 +25,8 @@ class TotalResources extends Component
     use IsEligibleTo;
     use UpdateResourceTotal;
     use PayFor;
+    use RequestTrait;
+    use Status;
 
     public $totals;
     /**
@@ -210,95 +209,6 @@ class TotalResources extends Component
      * take requests from children
      */
 
-    /**
-     * note: add the current resourceIncrementAmount for a resource to it's total and check if that allows other
-     * resources to be enabled
-     *
-     * @param     $id
-     * @param int $multiplier
-     */
-    public function requestGather($id, int $multiplier = 1)
-    {
-        if ($this->enabled[$id]) {
-
-            $tr         = \App\Models\TotalResources::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
-            $tr->amount += $this->resourceGatherAmount[$id] * $multiplier;
-            $tr->save();
-            $this->totals[$id] = $tr->amount;
-
-            $this->updateAllStatus();
-        }
-    }
-
-
-    public function requestEnable($resourceId)
-    {
-        $this->updateStatus($resourceId);
-        if ($this->eligibleToEnable[$resourceId]) {
-            $this->payForAddition($resourceId, 'enable');
-            $re         = ResourceEnabled::where(['user_id' => auth()->id(), 'resource_id' => $resourceId])->first();
-            $re->status = true;
-            $re->save();
-            $this->enabled[$resourceId] = $re->status;
-            $resourceTypeAmount         = $this->updateResourceTypeTotal($resourceId, 'worker');
-            $resourcesNeededToAddType   = $this->getResourcesRequiredToAddWorker($resourceId);
-            if ( ! empty($resourceTypeAmount) && ( ! empty($resourcesNeededToAddType) || $resourcesNeededToAddType === 0)) {
-                $this->emit('updateTotal', $resourceId, 'worker', $resourceTypeAmount, $resourcesNeededToAddType);
-            }
-            $this->updateResourceGatherAmount($resourceId);
-            $resourcesNeededToAddType = $this->getResourcesRequiredToAddWorker($resourceId);
-            if ( ! empty($resourceTypeAmount) && ( ! empty($resourcesNeededToAddType) || $resourcesNeededToAddType === 0)) {
-                $this->emit('updateTotal', $resourceId, 'worker', $resourceTypeAmount, $resourcesNeededToAddType);
-            }
-            $this->updateResourceGatherAmount($resourceId);
-            $this->setStatus('enable', $resourceId);
-            $this->updateCurrentResourceTotals();
-        }
-    }
-
-
-    public function requestAutomate($id)
-    {
-        $this->updateStatus($id);
-        if ($this->eligibleToAutomate[$id]) {
-            $ra         = ResourceAutomated::where(['user_id' => auth()->id(), 'resource_id' => $id])->first();
-            $ra->status = true;
-            $ra->save();
-            $this->automated[$id] = $ra->status;
-            $this->payForAddition($id, 'automate');
-            $this->setStatus('automated', $id);
-            $this->updateCurrentResourceTotals();
-        }
-    }
-
-
-    public function requestAdd($resourceId, $type)
-    {
-        $this->updateStatus($resourceId);
-        if ($this->isEligible($resourceId, $type)) {
-            $this->payForAddition($resourceId, $type);
-            $this->updateResourcesNeeded($resourceId, $type);
-            $resourceTypeAmount = $this->updateResourceTypeTotal($resourceId, $type);
-            switch ($type) {
-                case 'worker':
-                    $resourcesNeededToAddType = $this->getResourcesRequiredToAddWorker($resourceId);
-                    break;
-                case 'tool':
-                    $resourcesNeededToAddType = $this->getResourcesRequiredToAddTool($resourceId);
-                    break;
-                case 'foreman':
-                    $resourcesNeededToAddType = $this->getResourcesRequiredToAddForeman($resourceId);
-                    break;
-            }
-            if ( ! empty($resourceTypeAmount) && ( ! empty($resourcesNeededToAddType) || (isset($resourcesNeededToAddType) && $resourcesNeededToAddType === 0))) {
-                $this->emit('updateTotal', $resourceId, $type, $resourceTypeAmount, $resourcesNeededToAddType);
-            }
-            $this->updateResourceGatherAmount($resourceId);
-            $this->updateAllStatus();
-            $this->updateCurrentResourceTotals();
-        }
-    }
-
 
     public function runTimedChecks()
     {
@@ -311,121 +221,10 @@ class TotalResources extends Component
      * Take internal actions
      */
 
-    private function updateCurrentResourceTotals() {
+    private function updateCurrentResourceTotals()
+    {
         foreach ($this->resources as $resource) {
             $this->totals[$resource->id] = $this->gatherTotalResource(auth()->id(), $resource->id);
-        }
-    }
-
-    /**
-     * @param $resourceId
-     * @param $type
-     * @param $bool
-     */
-    private function updateEligiblity($resourceId, $type, $bool)
-    {
-        switch ($type) {
-            case 'enable':
-                if ( ! $this->enabled[$resourceId]) {
-                    $this->eligibleToEnable[$resourceId] = $bool;
-                    $ete                                 = EligibleToEnable::where([
-                        'user_id'     => auth()->id(),
-                        'resource_id' => $resourceId
-                    ])->first();
-                    $ete->status                         = $bool;
-                    $ete->save();
-                    $this->emit('canBeEnabled', $resourceId, $bool);
-                }
-                break;
-            case 'automate' :
-                if ( ! $this->automated[$resourceId]) {
-                    $this->eligibleToAutomate[$resourceId] = $bool;
-                    $eta                                   = EligibleToAutomate::where([
-                        'user_id'     => auth()->id(),
-                        'resource_id' => $resourceId
-                    ])->first();
-                    $eta->status                           = $bool;
-                    $eta->save();
-                    $this->emit('canBeAutomated', $resourceId, $bool, $this->resourcesNeededToAutomate[$resourceId]);
-                }
-                break;
-            case 'worker' :
-                $this->eligibleToAddWorker[$resourceId] = $bool;
-                $etw                                    = EligibleToAddWorker::where([
-                    'user_id'     => auth()->id(),
-                    'resource_id' => $resourceId
-                ])->first();
-                $etw->status                            = $bool;
-                $etw->save();
-                $this->emit('canAddWorker', $resourceId, $bool, $this->resourcesNeededToAddWorker[$resourceId]);
-                break;
-            case 'tool' :
-                $ett         = EligibleToAddTool::where([
-                    'user_id'     => auth()->id(),
-                    'resource_id' => $resourceId
-                ])->first();
-                $ett->status = $bool;
-                $ett->save();
-                $this->eligibleToAddTool[$resourceId] = $bool;
-                $this->emit('canAddTool', $resourceId, $bool, $this->resourcesNeededToAddTool[$resourceId]);
-                break;
-            case 'foreman' :
-                $this->eligibleToAddForeman[$resourceId] = $bool;
-                $this->emit('canAddForeman', $resourceId, $bool, $this->resourcesNeededToAddForeman[$resourceId]);
-                break;
-        }
-    }
-
-
-    private function setStatus($type, $id)
-    {
-        switch ($type) {
-            case 'worker' :
-                if ($this->enabled[$id]) {
-                    $canAdd = ($this->totals[$id] >= $this->resourcesNeededToAddWorker[$id]);
-                    $this->updateEligiblity($id, $type, $canAdd);
-                }
-                break;
-            case 'tool' :
-                if ($this->enabled[$id]) {
-                    $canAdd = ($this->totals[$id] >= $this->resourcesNeededToAddTool[$id]);
-                    $this->updateEligiblity($id, $type, $canAdd);
-                }
-                break;
-            case 'foreman' :
-                if ($this->enabled[$id]) {
-                    $canAdd = ($this->totals[$id] >= $this->resourcesNeededToAddForeman[$id]);
-                    $this->updateEligiblity($id, $type, $canAdd);
-                }
-                break;
-            case 'canBeEnabled' :
-                if ( ! $this->enabled[$id]) {
-                    $data      = $this->resourcesNeededToEnable[$id];
-                    $canEnable = $this->hasResourcesNeeded($data);
-
-                    $this->updateEligiblity($id, 'enable', $canEnable);
-                }
-                break;
-            case 'canBeAutomated' :
-                if ($this->enabled[$id] && ! $this->automated[$id]) {
-                    $data        = $this->resourcesNeededToAutomate[$id];
-                    $canAutomate = $this->hasResourcesNeeded($data);
-
-                    $this->updateEligiblity($id, 'automate', $canAutomate);
-                }
-                break;
-            case 'automate' :
-                if ($this->eligibleToAutomate[$id]) {
-                    $this->automated[$id] = true;
-                    $this->emit('toggleAutomate', $id, true);
-                }
-                break;
-            case 'enable' :
-                if ($this->eligibleToEnable[$id]) {
-                    $this->enabled[$id] = true;
-                    $this->emit('toggleEnable', $id, true);
-                }
-                break;
         }
     }
 
@@ -458,22 +257,7 @@ class TotalResources extends Component
     }
 
 
-    private function updateStatus($id)
-    {
-        $this->setStatus('canBeEnabled', $id);
-        $this->setStatus('canBeAutomated', $id);
-        $this->setStatus('worker', $id);
-        $this->setStatus('tool', $id);
-        $this->setStatus('foreman', $id);
-    }
 
-
-    private function updateAllStatus()
-    {
-        for ($i = 1; $i <= 12; $i++) {
-            $this->updateStatus($i);
-        }
-    }
 
 
     private function checkAutomated()

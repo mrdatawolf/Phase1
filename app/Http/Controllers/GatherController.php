@@ -2,16 +2,14 @@
 
 use App\Http\Traits\IsEligibleTo;
 use App\Http\Traits\PayFor;
-use App\Http\Traits\RequestTrait;
 use App\Http\Traits\UpdateResourceTotal;
 use Illuminate\Http\Request;
 
-class AddController extends Controller
+class GatherController extends Controller
 {
     use IsEligibleTo;
     use UpdateResourceTotal;
     use PayFor;
-    use RequestTrait;
 
     /**
      * Display a listing of the resource.
@@ -27,7 +25,8 @@ class AddController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     *
+     * @return void
      */
     public function store(Request $request)
     {
@@ -38,7 +37,8 @@ class AddController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     *
+     * @return void
      */
     public function show($id)
     {
@@ -50,10 +50,14 @@ class AddController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     *
+     * @return void
      */
     public function update(Request $request, $id)
     {
+        //check if resource can be added to.
+        //add the resource
+        //update eligiblity
         dd('update', $request->all(), $id);
     }
 
@@ -63,37 +67,8 @@ class AddController extends Controller
      * @param  int  $id
      * @return bool
      */
-    public function destroy($id)
+    public function destroy($id): bool
     {
         return false;
-    }
-
-
-    /**
-     * @param $type
-     * @param $resourceId
-     *
-     * @return int|null
-     */
-    public function addImprovement($type, $resourceId): ?int
-    {
-        $return = 0;
-        switch($type) {
-            case 'worker':
-            case 'tool':
-            case 'foreman':
-            $return = $this->requestAdd($resourceId, $type);
-                break;
-            case 'automate':
-                $return = $this->requestAutomate($resourceId);
-                break;
-            case 'enable':
-                $return = $this->requestEnable($resourceId);
-                break;
-            case 'gather':
-                $return = $this->requestGather($resourceId);
-        }
-
-        return $return;
     }
 }
