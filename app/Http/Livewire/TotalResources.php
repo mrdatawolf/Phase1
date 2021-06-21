@@ -8,21 +8,21 @@
  * 4. set the minimum resources needed to make a resource available.
  */
 
-use App\Http\Traits\InitialState;
-use App\Http\Traits\IsEligibleTo;
 use App\Http\Traits\PayFor;
 use App\Http\Traits\RequestTrait;
 use App\Http\Traits\Status;
 use App\Http\Traits\UpdateResourceTotal;
+use App\Models\Automate;
+use App\Models\Enable;
+use App\Models\Foreman;
 use App\Models\ImproveMultiplier;
 use App\Models\Resource;
-use App\Models\ResourceEnabled;
+use App\Models\Tool;
+use App\Models\Worker;
 use Livewire\Component;
 
 class TotalResources extends Component
 {
-    use InitialState;
-    use IsEligibleTo;
     use UpdateResourceTotal;
     use PayFor;
     use RequestTrait;
@@ -139,19 +139,25 @@ class TotalResources extends Component
         $this->resources = Resource::get();
         $this->updateCurrentResourceTotals();
         foreach ($this->resources as $resource) {
-            $this->resourceWorkers[$resource->id]      = $this->gatherTotalWorkers(auth()->id(), $resource->id);
-            $this->resourceTools[$resource->id]        = $this->gatherTotalTools(auth()->id(), $resource->id);
-            $this->resourceForemen[$resource->id]      = $this->gatherTotalForemen(auth()->id(), $resource->id);
-            $this->resourceGatherAmount[$resource->id] = $this->gatherResourceIncrementAmount(auth()->id(),
-                $resource->id);
-            $this->eligibleToEnable[$resource->id]     = $this->isEligibleToEnable(auth()->id(), $resource->id);
-            $this->eligibleToAutomate[$resource->id]   = $this->isEligibleToAutomate(auth()->id(), $resource->id);
-            $this->eligibleToAddWorker[$resource->id]  = $this->isEligibleToAddWorker(auth()->id(), $resource->id);
-            $this->eligibleToAddTool[$resource->id]    = $this->isEligibleToAddTool(auth()->id(), $resource->id);
-            $this->eligibleToAddForeman[$resource->id] = $this->isEligibleToAddForeman(auth()->id(), $resource->id);
-            $this->automated[$resource->id]            = $this->isAutomated(auth()->id(), $resource->id);
-            $this->improveMultiplier[$resource->id]    = $this->getImproveMultiplier($resource->id);
-            $this->gatherEnableStatus($resource->id);
+            $workers  = new Worker($resource->id);
+            $tools    = new Tool($resource->id);
+            $foremen  = new Foreman($resource->id);
+            $gather   = new \App\Models\Gather($resource->id);
+            $enable   = new Enable($resource->id);
+            $automate = new Automate($resource->id);
+
+            $this->resourceWorkers[$resource->id]             = $workers->getAmount();
+            $this->resourceTools[$resource->id]               = $tools->getAmount();
+            $this->resourceForemen[$resource->id]             = $foremen->getAmount();
+            $this->resourceGatherAmount[$resource->id]        = $gather->getAmount();
+            $this->eligibleToEnable[$resource->id]            = $enable->getEligibleToActivate();
+            $this->eligibleToAutomate[$resource->id]          = $automate->getEligibleToActivate();
+            $this->eligibleToAddWorker[$resource->id]         = $workers->getEligibleToAdd();
+            $this->eligibleToAddTool[$resource->id]           = $tools->getEligibleToAdd();
+            $this->eligibleToAddForeman[$resource->id]        = $foremen->getEligibleToAdd();
+            $this->automated[$resource->id]                   = $automate->getStatus();
+            $this->improveMultiplier[$resource->id]           = $this->getImproveMultiplier($resource->id);
+            $this->enabled[$resource->id]                     = $enable->getStatus();
             $this->resourcesNeededToAutomate[$resource->id]   = $this->getResourcesNeededToAutomate($resource->id);
             $this->resourcesNeededToEnable[$resource->id]     = $this->getResourcesNeededToEnable($resource->id);
             $this->resourcesNeededToAddWorker[$resource->id]  = $this->getResourcesRequiredToAddWorker($resource->id);
@@ -165,20 +171,7 @@ class TotalResources extends Component
     {
         $im = ImproveMultiplier::firstOrNew(['user_id' => auth()->id(), 'resource_id' => $id]);
         if ($im->amount == 0) {
-            $initialValues = [
-                1  => 2,
-                2  => 3,
-                3  => 10,
-                4  => 12,
-                5  => 20,
-                6  => 25,
-                7  => 26,
-                8  => 40,
-                9  => 45,
-                10 => 51,
-                11 => 56,
-                12 => 70
-            ];
+            $initialValues = config('multipliers.gather');
             $im->amount    = $initialValues[$id];
             $im->save();
         }
@@ -187,28 +180,28 @@ class TotalResources extends Component
     }
 
 
-    public function gatherEnableStatus($id)
-    {
-        $re = ResourceEnabled::firstOrCreate(['user_id' => auth()->id(), 'resource_id' => $id]);
-        if ($id === 1 && $re->status !== true) {
-            $re->status = true;
-            $re->save();
-        }
-        $this->enabled[$id] = $re->status;
-    }
-
-
-    public function bankDeposit($userId, $resourceId, $bAmount, $exAmount)
+    public function bankDeposit($resourceId)
     {
         $this->totals[$resourceId] = 0;
-        $this->updateAllStatus();
+        $resourceCount             = Resource::count();
+        for ($i = 1; $i <= $resourceCount; $i++) {
+            $result = $this->setStatus('canBeEnabled', $i);
+            $this->emit('canBeEnabled', $i, $result);
+            $result = $this->setStatus('canBeAutomated', $i);
+            $this->emit('canBeAutomated', $i, $result, $this->resourcesNeededToAutomate[$i]);
+            $result = $this->setStatus('worker', $i);
+            $this->emit('canAddWorker', $i, $result, $this->resourcesNeededToAddWorker[$i]);
+            $result = $this->setStatus('tool', $i);
+            $this->emit('canAddTool', $i, $result, $this->resourcesNeededToAddTool[$i]);
+            $result = $this->setStatus('foreman', $i);
+            $this->emit('canAddForeman', $i, $result, $this->resourcesNeededToAddForeman[$i]);
+        }
     }
 
 
     /*
      * take requests from children
      */
-
 
     public function runTimedChecks()
     {
@@ -229,9 +222,26 @@ class TotalResources extends Component
     }
 
 
-    private function runAutomatedUpdates($id)
+    /**
+     * @param $resourceId
+     */
+    private function runAutomatedUpdates($resourceId)
     {
-        $this->requestGather($id, 5);
+        $amount                    = $this->requestGather($resourceId, 5);
+        $this->totals[$resourceId] = $amount;
+        $resourceCount             = Resource::count();
+        for ($i = 1; $i <= $resourceCount; $i++) {
+            $result = $this->setStatus('canBeEnabled', $i);
+            $this->emit('canBeEnabled', $i, $result);
+            $result = $this->setStatus('canBeAutomated', $i);
+            $this->emit('canBeAutomated', $i, $result, $this->resourcesNeededToAutomate[$i]);
+            $result = $this->setStatus('worker', $i);
+            $this->emit('canAddWorker', $i, $result, $this->resourcesNeededToAddWorker[$i]);
+            $result = $this->setStatus('tool', $i);
+            $this->emit('canAddTool', $i, $result, $this->resourcesNeededToAddTool[$i]);
+            $result = $this->setStatus('foreman', $i);
+            $this->emit('canAddForeman', $i, $result, $this->resourcesNeededToAddForeman[$i]);
+        }
     }
 
 
@@ -255,9 +265,6 @@ class TotalResources extends Component
     {
         $this->totals[$id] -= ($this->resourceWorkers[$id] - 1);
     }
-
-
-
 
 
     private function checkAutomated()
@@ -285,25 +292,6 @@ class TotalResources extends Component
     /*
      * verify validity of actions
      */
-
-    /**
-     * @param $resourcesNeeded
-     *
-     * @return bool
-     */
-    private function hasResourcesNeeded($resourcesNeeded): bool
-    {
-        $allow = true;
-        foreach ($resourcesNeeded as $neededId => $amountNeeded) {
-            $allow = ($this->totals[$neededId] >= $amountNeeded);
-            if ($allow === false) {
-                break;
-            }
-        }
-
-        return $allow;
-    }
-
 
     /**
      * @param int    $id
