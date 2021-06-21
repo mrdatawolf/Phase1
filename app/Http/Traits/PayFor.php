@@ -2,6 +2,7 @@
 
 use App\Models\AutomateResources;
 use App\Models\EnableResources;
+use App\Models\Resource;
 use App\Models\ResourceIncrementAmounts;
 use App\Models\TotalForeman;
 use App\Models\TotalResources;
@@ -69,19 +70,19 @@ trait PayFor
 
     public function getResourcesRequiredToAddWorker($resourceId)
     {
-        return $this->placeholderNeeds[$resourceId] * $this->gatherTotalWorkers(auth()->id(), $resourceId);
+        return config('placeholders.worker_base_cost.'.$resourceId) * $this->gatherTotalWorkers(auth()->id(), $resourceId);
     }
 
 
     public function getResourcesRequiredToAddTool($resourceId)
     {
-        return $this->placeholderNeeds[$resourceId] * $this->gatherTotalTools(auth()->id(), $resourceId);
+        return config('placeholders.tool_base_cost.'.$resourceId) * $this->gatherTotalTools(auth()->id(), $resourceId);
     }
 
 
     public function getResourcesRequiredToAddForeman($resourceId)
     {
-        return $this->placeholderNeeds[$resourceId] * $this->gatherTotalForemen(auth()->id(), $resourceId);
+        return config('placeholders.foreman_base_cost.'.$resourceId) * $this->gatherTotalForemen(auth()->id(), $resourceId);
     }
 
 
@@ -89,7 +90,8 @@ trait PayFor
     {
         $required = [];
         $resourcesNeeded     = AutomateResources::where('resource_id', $resourceId)->first();
-        for ($x = 1; $x <= 12; $x++) {
+        $resources = Resource::all();
+        for ($x = 1; $x <= $resources->count(); $x++) {
             $thisId = 'r'.$x;
             $amount = (int) $resourcesNeeded->$thisId;
             if ($amount > 0) {

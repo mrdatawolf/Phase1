@@ -2,11 +2,13 @@
 
 use App\Models\ResourceAutomated;
 use App\Models\ResourceEnabled;
+use App\Models\ResourceIncrementAmounts;
 use App\Models\TotalResources;
 
 /**
  * Trait RequestTrait
  * note: requires UpdateResourceTotal trail to use some of these methods.
+ * note: also status trait is required.
  *
  * @package App\Http\Traits
  */
@@ -16,20 +18,21 @@ trait RequestTrait
      * note: add the current resourceIncrementAmount for a resource to it's total and check if that allows other
      * resources to be enabled
      *
-     * @param     $resourceId
+     * @param int $resourceId
      * @param int $multiplier
      *
      * @return float|int
      */
-    public function requestGather($resourceId, int $multiplier = 1)
+    public function requestGather(int $resourceId, int $multiplier = 1)
     {
+        $userId = auth()->id();
+        $enabled = (ResourceEnabled::where(['user_id' => $userId, 'resource_id' => $resourceId])->first()->status == 1);
+        $gatherAmount = ResourceIncrementAmounts::where(['user_id' => $userId, 'resource_id' => $resourceId])->first()->amount;
         $return = 0;
-        if ($this->enabled[$resourceId]) {
-            $tr         = TotalResources::where(['user_id' => auth()->id(), 'resource_id' => $resourceId])->first();
-            $tr->amount += $this->resourceGatherAmount[$resourceId] * $multiplier;
+        if ($enabled) {
+            $tr         = TotalResources::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
+            $tr->amount += $gatherAmount * $multiplier;
             $tr->save();
-            $this->totals[$resourceId] = $tr->amount;
-            $this->updateAllStatus();
             $return = $tr->amount;
         }
 
@@ -45,8 +48,10 @@ trait RequestTrait
     public function requestEnable($resourceId): bool
     {
         $return = false;
+        $userId = auth()->id();
+        $enabled = (ResourceEnabled::where(['user_id' => $userId, 'resource_id' => $resourceId])->first()->status == 1);
         $this->updateStatus($resourceId);
-        if ($this->eligibleToEnable[$resourceId]) {
+        if ($enabled) {
             $this->payForAddition($resourceId, 'enable');
             $re         = ResourceEnabled::where(['user_id' => auth()->id(), 'resource_id' => $resourceId])->first();
             $re->status = true;
@@ -130,5 +135,13 @@ trait RequestTrait
         }
 
         return $resourceTypeAmount;
+    }
+
+    private function updateStatus($resourceId) {
+        $this->setStatus('canBeEnabled', $resourceId);
+        $this->setStatus('canBeAutomated', $resourceId);
+        $this->setStatus('worker', $resourceId);
+        $this->setStatus('tool', $resourceId);
+        $this->setStatus('foreman', $resourceId);
     }
 }

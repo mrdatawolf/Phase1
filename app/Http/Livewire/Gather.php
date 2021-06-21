@@ -1,16 +1,16 @@
 <?php namespace App\Http\Livewire;
 
-use App\Http\Traits\InitialState;
-use App\Http\Traits\IsEligibleTo;
 use App\Http\Traits\ResourcesRequired;
+use App\Models\Automate;
+use App\Models\Enable;
+use App\Models\Foreman;
 use App\Models\Resource;
-use App\Models\ResourceEnabled;
+use App\Models\Tool;
+use App\Models\Worker;
 use Livewire\Component;
 
 class Gather extends Component
 {
-    use InitialState;
-    use IsEligibleTo;
     use ResourcesRequired;
 
     public  $resourceId;
@@ -54,28 +54,35 @@ class Gather extends Component
 
     public function mount()
     {
-        $this->enabled = ResourceEnabled::where(['user_id' => auth()->id(), 'resource_id' => $this->resourceId])->first()->status;
+        $automate = new Automate($this->resourceId);
+        $enable = new Enable($this->resourceId);
+        $workers  = new Worker($this->resourceId);
+        $tools    = new Tool($this->resourceId);
+        $foremen  = new Foreman($this->resourceId);
+        $gather   = new \App\Models\Gather($this->resourceId);
+        $this->allowAutomate = $automate->getEligibleToActivate();
+        $this->automated = $automate->getStatus();
+        $this->enabled = $enable->getStatus();
         $this->resources = Resource::get();
         $this->getResourcesNeededToAutomate($this->resourceId);
-        $this->getAutomationStatus($this->resourceId);
-        $this->resourcesNeededToEnable = $this->getResourcesNeededToEnable($this->resourceId);
-        $this->totalGatherAmount = $this->gatherResourceIncrementAmount(auth()->id(), $this->resourceId);
-        $this->resourcesRequiredToAddWorker  = $this->getResourcesRequiredToAddWorker($this->resourceId);
-        $this->resourcesRequiredToAddTool    = $this->getResourcesRequiredToAddTool($this->resourceId);
-        $this->resourcesRequiredToAddForeman = $this->getResourcesRequiredToAddForeman($this->resourceId);
+        $this->resourcesNeededToEnable = $enable->getCost();
+        $this->totalGatherAmount = $gather->getAmount();
+        $this->resourcesRequiredToAddWorker  = $workers->getCost();
+        $this->resourcesRequiredToAddTool    = $tools->getCost();
+        $this->resourcesRequiredToAddForeman = $foremen->getCost();
 
         $this->allowSell              = false;
         $this->allowSendToStorage     = false;
         $this->allowSendToTeamStorage = false;
         $this->totalResource          = $this->gatherTotalResource(auth()->id(), $this->resourceId);
-        $this->totalForemen           = $this->gatherTotalForemen(auth()->id(), $this->resourceId);
-        $this->totalTools             = $this->gatherTotalTools(auth()->id(), $this->resourceId);
-        $this->totalWorkers           = $this->gatherTotalWorkers(auth()->id(), $this->resourceId);
-        $this->allowAddForeman        = $this->isEligibleToAddForeman(auth()->id(), $this->resourceId);
-        $this->allowAddTool           = $this->isEligibleToAddTool(auth()->id(), $this->resourceId);
-        $this->allowAddWorker         = $this->isEligibleToAddWorker(auth()->id(), $this->resourceId);
-        $this->allowAutomate          = $this->isEligibleToAutomate(auth()->id(), $this->resourceId);
-        $this->allowEnable            = $this->isEligibleToEnable(auth()->id(), $this->resourceId);
+        $this->totalForemen           = $foremen->getAmount();
+        $this->totalTools             = $tools->getAmount();
+        $this->totalWorkers           = $workers->getAmount();
+        $this->allowAddForeman        = $foremen->getEligibleToAdd();
+        $this->allowAddTool           = $tools->getEligibleToAdd();
+        $this->allowAddWorker         = $workers->getEligibleToAdd();
+        $this->allowAutomate          = $automate->getEligibleToActivate();
+        $this->allowEnable            = $enable->getEligibleToActivate();
     }
 
 
