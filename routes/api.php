@@ -47,9 +47,6 @@ Route::post('logout', [AuthController::class, 'logout']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/resources/ids', [ResourceController::class, 'ids']);
     Route::put('add/{type}/{resourceId}', [AddController::class, 'addImprovement']);
-    Route::put('automate/{resourceId}', [AutomateController::class, 'automate']);
-    Route::put('enable/{resourceId}', [EnableController::class, 'enable']);
-    Route::put('gather/{resourceId}', [GatherController::class, 'gather']);
     Route::apiResources([
         'automate_resources'         => AutomateResourcesController::class,
         'eligible_to_automate'       => EligibleToAutomateController::class,
@@ -69,7 +66,9 @@ Route::middleware('auth:sanctum')->group(function () {
         'exchange_rate'              => ExchangeRate::class,
         'current_numbers'            => InitialGather::class,
         'add'                        => AddController::class,
-        'gather'                     => GatherController::class
+        'gather'                     => GatherController::class,
+        'enable'                     => EnableController::class,
+        'automate'                   => AutomateController::class
     ]);
 });
 

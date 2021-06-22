@@ -19,10 +19,10 @@ class Foreman
         $this->setResourceId($resourceId);
         $this->setOwner(auth()->id());
         $this->setBaseCost(config('placeholders.foreman_base_cost.'.$resourceId));
-        $this->setAmount(TotalWorkers::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount);
+        $this->setAmount(TotalForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount);
         $this->setCost($this->baseCost * $this->amount);
         $this->setValue(1);
-        $this->setEligibleToAdd(EligibleToAddWorker::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->status);
+        $this->setEligibleToAdd(EligibleToAddForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->status);
     }
 
 

@@ -163,6 +163,7 @@ class Gather
             $tr->amount += $this->amount * $this->multiplier;
             $tr->save();
             $amount = $tr->amount;
+            $this->setAmount($amount);
             $this->updateAllStatus();
         }
 

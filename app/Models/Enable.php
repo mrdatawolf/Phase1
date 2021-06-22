@@ -96,7 +96,10 @@ class Enable
     }
 
 
-    private function gatherStatus()
+    /**
+     * @return bool
+     */
+    private function gatherStatus(): bool
     {
         return (ResourceEnabled::where([
                 'user_id'     => $this->owner,
@@ -105,7 +108,10 @@ class Enable
     }
 
 
-    private function gatherEligiblity()
+    /**
+     * @return bool
+     */
+    private function gatherEligiblity(): bool
     {
         if ( ! $this->status) {
             return (EligibleToEnable::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])
@@ -175,6 +181,17 @@ class Enable
         }
 
         return false;
+    }
+
+
+    public function deactivate(): bool
+    {
+        $re         = ResourceEnabled::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
+        $re->status = 0;
+        $re->save();
+        $this->updateAllStatus();
+
+        return true;
     }
 
 
