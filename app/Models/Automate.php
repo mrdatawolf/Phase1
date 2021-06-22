@@ -192,6 +192,17 @@ class Automate
     }
 
 
+    public function deactivate(): bool
+    {
+        $re         = ResourceAutomated::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
+        $re->status = 0;
+        $re->save();
+        $this->updateAllStatus();
+
+        return true;
+    }
+
+
     private function payForActivation()
     {
         foreach ($this->cost as $resourceId => $cost) {

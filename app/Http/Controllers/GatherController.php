@@ -1,27 +1,27 @@
 <?php namespace App\Http\Controllers;
 
-use App\Http\Traits\IsEligibleTo;
-use App\Http\Traits\PayFor;
-use App\Http\Traits\RequestTrait;
-use App\Http\Traits\UpdateResourceTotal;
 use App\Models\Gather;
+use App\Models\Resource;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class GatherController extends Controller
 {
-    use IsEligibleTo;
-    use UpdateResourceTotal;
-    use PayFor;
-    use RequestTrait;
-
     /**
      * Display a listing of the resource.
      *
-     * @return null
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        return null;
+        $return = [];
+        $resources = Resource::all();
+        foreach($resources as $resource) {
+            $gather = new Gather($resource->id);
+            $return[$resource->id] = $gather->getAmount();
+        }
+
+        return response()->json($return, 200);
     }
 
     /**
@@ -29,11 +29,11 @@ class GatherController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      *
-     * @return void
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        dd('store', $request->all());
+        return response()->json('Denied', 403);
     }
 
     /**
@@ -41,43 +41,40 @@ class GatherController extends Controller
      *
      * @param int $resourceId
      *
-     * @return int
+     * @return JsonResponse
      */
-    public function show(int $resourceId): int
+    public function show(int $resourceId): JsonResponse
     {
-        return $this->requestGather($resourceId);
+        $gather = new Gather($resourceId);
+
+        return response()->json($gather->getAmount(), 200);
     }
+
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request $request
-     * @param int                       $id
+     * @param int                       $resourceId
      *
-     * @return void
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request, int $resourceId): JsonResponse
     {
-        //check if resource can be added to.
-        //add the resource
-        //update eligiblity
-        dd('update', $request->all(), $id);
+        $gather = new Gather($resourceId);
+
+        return response()->json($gather->add(), 200);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return bool
+     * @param int $resourceId
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id): bool
+    public function destroy(int $resourceId): JsonResponse
     {
-        return false;
-    }
-
-    public function gather($resourceId) {
-        $gather = new Gather($resourceId);
-
-        return $gather->add();
+        return response()->json('Not implemented for ' . $resourceId, 501);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Resource;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ResourceController extends Controller
@@ -20,20 +21,22 @@ class ResourceController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     *
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        return Resource::create($request->all());
+        return response()->json('Denied', 403);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $id)
     {
         return Resource::find($id);
     }
@@ -41,28 +44,26 @@ class ResourceController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param  \Illuminate\Http\Request $request
+     * @param int                       $id
+     *
+     * @return JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id): JsonResponse
     {
-        $total = Resource::find($id);
-        $total->update($request->all());
-
-        return $total;
+        return response()->json('Denied for ' . $id, 403);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param int $id
+     *
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        $total = Resource::find($id);
-        return $total->delete();
+        return response()->json('Denied for ' . $id, 403);
     }
 
     public function ids() {

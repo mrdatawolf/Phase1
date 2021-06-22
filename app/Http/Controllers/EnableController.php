@@ -1,88 +1,86 @@
 <?php namespace App\Http\Controllers;
 
-use App\Models\Automate;
 use App\Models\Enable;
-use App\Models\Foreman;
-use App\Models\Tool;
-use App\Models\Worker;
+use App\Models\Resource;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class EnableController extends Controller
 {
 
     /**
-     * Display a listing of the resource.
+     * Display the status of each resource.
      *
-     * @return null
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        return null;
+        $return = [];
+        $resources = Resource::all();
+        foreach($resources as $resource) {
+            $enable = new Enable($resource->id);
+            $return[$resource->id] = $enable->getStatus();
+        }
+
+        return response()->json($return, 200);
     }
 
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        dd('store', $request->all());
+        return response()->json('Denied', 403);
     }
 
 
     /**
      * Display the specified resource.
      *
-     * @param int $id
+     * @param int $resourceId
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show(int $resourceId): JsonResponse
     {
-        dd('show', $id);
+        $enable = new Enable($resourceId);
+
+        return response()->json($enable->getStatus(), 200);
     }
 
 
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int                      $id
+     * @param  \Illuminate\Http\Request $request
+     * @param int                       $resourceId
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $resourceId): JsonResponse
     {
-        dd('update', $request->all(), $id);
+        $enable = new Enable($resourceId);
+
+        return response()->json($enable->activate(), 200);
     }
 
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
+     * @param int $resourceId
      *
-     * @return bool
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
-    {
-        return false;
-    }
-
-
-    /**
-     * @param $resourceId
-     *
-     * @return bool
-     */
-    public function enable($resourceId): bool
+    public function destroy(int $resourceId): JsonResponse
     {
         $enable = new Enable($resourceId);
 
-        return $enable->activate();
+        return response()->json($enable->deactivate(), 200);
     }
 }
