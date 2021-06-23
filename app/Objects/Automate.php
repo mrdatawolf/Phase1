@@ -39,7 +39,11 @@ class Automate
      */
     public function setStatus($status): void
     {
-        $this->status = $status;
+        if(is_bool($status)) {
+            $this->status = $status;
+        } else {
+            $this->status = ($status == 1);
+        }
     }
 
 
@@ -137,9 +141,9 @@ class Automate
 
 
     /**
-     * @return mixed
+     * @return bool
      */
-    public function getStatus()
+    public function getStatus(): bool
     {
         return $this->status;
     }

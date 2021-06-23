@@ -18,16 +18,18 @@ class Tool
 
     use Status;
 
-
     public function __construct($resourceId)
     {
         $this->setResourceId($resourceId);
         $this->setOwner(auth()->id());
-        $this->setBaseCost(config('placeholders.tool_base_cost.'.$resourceId));
-        $this->setAmount(TotalTools::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount);
-        $this->setCost($this->baseCost * $this->amount);
+        $baseCost = $this->gatherBaseCost($resourceId);
+        $this->setBaseCost($baseCost);
+        $amount = $this->gatherAmount();
+        $this->setAmount($amount);
+        $this->setCost($baseCost * $amount);
         $this->setValue(1);
-        $this->setEligibleToAdd(EligibleToAddTool::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->status);
+        $eligible = $this->gatherEligiblity();
+        $this->setEligibleToAdd($eligible);
     }
 
 
@@ -94,6 +96,25 @@ class Tool
     }
 
 
+    private function gatherEligiblity() {
+        return EligibleToAddTool::where(['user_id'     => $this->owner,
+                                         'resource_id' => $this->resourceId
+        ])->first()->status;
+    }
+
+    private function gatherAmount()
+    {
+        return TotalTools::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount;
+    }
+
+
+    private function gatherBaseCost($resourceId)
+    {
+        return config('placeholders.tool_base_cost.'.$resourceId);
+    }
+
+
+
     /**
      * @param int $amount
      */
@@ -156,9 +177,10 @@ class Tool
         $this->baseCost = $baseCost;
     }
 
-    public function add(): bool
+
+    public function add()
     {
-        if($this->eligibleToAdd) {
+        if ($this->eligibleToAdd) {
             $this->payForAddition();
             $total = TotalTools::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
             $total->amount++;
@@ -166,14 +188,18 @@ class Tool
             $this->setAmount($total->amount);
             $this->updateAllStatus();
 
-            return true;
-        }
+            return $total->amount;
+        } else {
+            $tr = TotalResources::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
 
-        return false;
+            return $tr->amount -= $this->cost;
+        }
     }
 
-    public function payForAddition() {
-        $tr = TotalResources::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
+
+    public function payForAddition()
+    {
+        $tr         = TotalResources::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
         $tr->amount -= $this->cost;
         $tr->save();
     }

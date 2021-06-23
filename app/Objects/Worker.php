@@ -22,13 +22,12 @@ class Worker
         $this->setResourceId($resourceId);
         $this->setOwner(auth()->id());
         $this->setBaseCost(config('placeholders.worker_base_cost.'.$resourceId));
-        $this->setAmount(TotalWorkers::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])
-                                     ->first()->amount);
+        $amount = $this->gatherAmount();
+        $this->setAmount($amount);
         $this->setCost($this->baseCost * $this->amount);
         $this->setValue(1);
-        $this->setEligibleToAdd(EligibleToAddWorker::where(['user_id'     => $this->owner,
-                                                            'resource_id' => $this->resourceId
-        ])->first()->status);
+        $eligible = $this->gatherEligibleToAdd();
+        $this->setEligibleToAdd($eligible);
     }
 
 
@@ -95,6 +94,18 @@ class Worker
     }
 
 
+    private function gatherAmount() {
+        return TotalWorkers::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount;
+    }
+
+
+    private function gatherEligibleToAdd(): bool
+    {
+        return (EligibleToAddWorker::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])
+                                   ->first()->status == 1);
+    }
+
+
     /**
      * @param int $amount
      */
@@ -158,7 +169,7 @@ class Worker
     }
 
 
-    public function add(): bool
+    public function add()
     {
         if ($this->eligibleToAdd) {
             $this->payForAddition();
@@ -168,10 +179,12 @@ class Worker
             $this->setAmount($total->amount);
             $this->updateAllStatus();
 
-            return true;
-        }
+            return $total->amount;
+        } else {
+            $tr = TotalResources::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
 
-        return false;
+            return $tr->amount -= $this->cost;
+        }
     }
 
 

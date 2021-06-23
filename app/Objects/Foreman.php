@@ -21,11 +21,14 @@ class Foreman
     {
         $this->setResourceId($resourceId);
         $this->setOwner(auth()->id());
-        $this->setBaseCost(config('placeholders.foreman_base_cost.'.$resourceId));
-        $this->setAmount(TotalForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount);
-        $this->setCost($this->baseCost * $this->amount);
+        $baseCost = $this->gatherBaseCost();
+        $this->setBaseCost($baseCost);
+        $amount = $this->gatherAmount();
+        $this->setAmount($amount);
+        $this->setCost($baseCost * $amount);
         $this->setValue(1);
-        $this->setEligibleToAdd(EligibleToAddForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->status);
+        $eligible = $this->gatherEligiblity();
+        $this->setEligibleToAdd($eligible);
     }
 
 
@@ -92,6 +95,20 @@ class Foreman
     }
 
 
+    private function gatherEligiblity() {
+        return EligibleToAddForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->status;
+    }
+
+    private function gatherAmount() {
+        return TotalForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount;
+    }
+
+
+    private function gatherBaseCost() {
+        return config('placeholders.foreman_base_cost.'.$this->resourceId);
+    }
+
+
     /**
      * @param int $amount
      */
@@ -154,7 +171,7 @@ class Foreman
         $this->baseCost = $baseCost;
     }
 
-    public function add(): bool
+    public function add()
     {
         if($this->eligibleToAdd) {
             $this->payForAddition();
@@ -164,14 +181,16 @@ class Foreman
             $this->setAmount($total->amount);
             $this->updateAllStatus();
 
-            return true;
-        }
+            return $total->amount;
+        } else {
+            $tr = TotalResources::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
 
-        return false;
+            return $tr->amount -= $this->cost;
+        }
     }
 
     public function payForAddition() {
-        $tr = TotalResources::where(['user_id' => auth()::id(), 'resource_id' => $this->resourceId])->first();
+        $tr = TotalResources::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
         $tr->amount -= $this->cost;
         $tr->save();
     }

@@ -1,88 +1,73 @@
 <?php namespace App\Http\Traits;
 
-use App\Models\Automate;
-use App\Models\AutomateResources;
 use App\Models\EligibleToAddForeman;
 use App\Models\EligibleToAddTool;
 use App\Models\EligibleToAddWorker;
 use App\Models\EligibleToAutomate;
 use App\Models\EligibleToEnable;
-use App\Models\Enable;
-use App\Models\EnableResources;
-use App\Models\Foreman;
-use App\Models\Gather;
+use App\Objects\Automate;
+use App\Objects\Enable;
 use App\Models\Resource;
 use App\Models\ResourceAutomated;
 use App\Models\ResourceEnabled;
-use App\Models\Tool;
-use App\Models\TotalResources;
-use App\Models\Worker;
 
 trait Status
 {
-
-
     private function setStatus($type, $resourceId): bool
     {
         $return = false;
-        $workers  = new Worker($resourceId);
-        $tools    = new Tool($resourceId);
-        $foremen  = new Foreman($resourceId);
-        $automate = new Automate($resourceId);
         $enable   = new Enable($resourceId);
-        $gather   = new Gather($resourceId);
-        $tr = TotalResources::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
-        $re = ResourceEnabled::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
-        $ra = ResourceAutomated::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
-        $ete = EligibleToEnable::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
-        $eta = EligibleToAutomate::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
-        $enabled = ($re->status == 1);
-        $automated = ($ra->status == 1);
-        $eligibleToAutomate = ($eta->status == 1);
-        $eligibleToEnable = ($ete->status == 1);
+        $automate = new Automate($resourceId);
+        $resource = new \App\Objects\Resource($resourceId);
+
+        $totalResource = $resource->getAmount();
         switch ($type) {
             case 'worker' :
-                if ($enabled) {
-                    $canAdd = ($tr->amount >= $this->resourcesNeededToAddWorker[$resourceId]);
+                if ($enable->getStatus()) {
+                    $canAdd = ($totalResource >= $resource->getWorkerCost());
                     $this->updateEligiblity($resourceId, $type, $canAdd);
                 }
                 break;
             case 'tool' :
-                if ($enabled) {
-                    $canAdd = ($tr->amount >= $this->resourcesNeededToAddTool[$resourceId]);
+                if ($enable->getStatus()) {
+                    $canAdd = ($totalResource >= $resource->getToolCost());
                     $this->updateEligiblity($resourceId, $type, $canAdd);
                 }
                 break;
             case 'foreman' :
-                if ($enabled) {
-                    $canAdd = ($tr->amount >= $this->resourcesNeededToAddForeman[$resourceId]);
+                if ($enable->getStatus()) {
+                    $canAdd = ($totalResource >= $resource->getForemanCost());
                     $this->updateEligiblity($resourceId, $type, $canAdd);
                 }
                 break;
             case 'canBeEnabled' :
-                if ( ! $enabled) {
+                if ( ! $enable->getStatus()) {
                     $canEnable = $this->hasResourcesNeeded($type, $resourceId);
                     $this->updateEligiblity($resourceId, 'enable', $canEnable);
                 }
                 break;
             case 'canBeAutomated' :
-                if ($enabled && ! $automated) {
+                if ($enable->getStatus() && ! $automate->getStatus()) {
                     $canAutomate = $this->hasResourcesNeeded($type, $resourceId);
                     $this->updateEligiblity($resourceId, 'automate', $canAutomate);
                 }
                 break;
             case 'automate' :
-                if ($enabled && ! $automated && $eligibleToAutomate) {
+                if ($enable->getStatus() && ! $automate->getStatus() && $resource->getEligibleToAutomate()) {
+                    $ra = ResourceAutomated::where(['user_id' => auth()->id(), 'resource_id' => $resourceId])->first();
                     $ra->status = 1;
+                    $ra->save();
+                    $automate->setStatus(1);
                     $return = true;
-                    //$this->emit('toggleAutomate', $resourceId, true);
                 }
                 break;
             case 'enable' :
-                if (! $enabled && $eligibleToEnable) {
+                if (! $enable->getStatus() && $resource->getEligibleToActivate()) {
+                    $re = ResourceEnabled::where(['user_id' => auth()->id(), 'resource_id' => $resourceId])->first();
                     $re->status = 1;
+                    $re->save();
+                    $enable->setStatus(1);
                     $return = true;
-                    //$this->emit('toggleEnable', $resourceId, true);
                 }
                 break;
         }
@@ -90,10 +75,13 @@ trait Status
         return $return;
     }
 
+
     /**
      * @param $resourceId
      * @param $type
      * @param $bool
+     *
+     * @return bool
      */
     private function updateEligiblity($resourceId, $type, $bool): bool
     {
@@ -168,27 +156,28 @@ trait Status
      */
     private function hasResourcesNeeded($type, $resourceId): bool
     {
-        $userId = auth()->id();
+        $resources = Resource::all();
+        $resource = new \App\Objects\Resource($resourceId);
         switch($type) {
             case 'canBeEnabled' :
             case 'enable' :
-                $resourcesNeeded     = EnableResources::where('resource_id', $resourceId)->first();
+                $resourcesNeeded     = $resource->getActivateCost();
                 break;
             case 'canBeAutomated' :
             case 'automate' :
-                $resourcesNeeded     = AutomateResources::where('resource_id', $resourceId)->first();
+                $resourcesNeeded     = $resource->getAutomateCost();
                 break;
                 default :
-                    dd($type);
+                   return false;
         }
-        $resources = Resource::all();
+
         for ($x = 1; $x <= $resources->count(); $x++) {
-            $tr = TotalResources::where(['user_id' => $userId, 'resource_id' => $x])->first();
-            $thisId = 'r'.$x;
-            $amountNeeded = (int) $resourcesNeeded->$thisId;
-            $allow = ($tr->amount >= $amountNeeded);
-            if ($allow === false) {
-                return false;
+            $r = new \App\Objects\Resource($x);
+            if(! empty($resourcesNeeded->$x)) {
+                $amountNeeded = (int)$resourcesNeeded->$x;
+                if ($r->getAmount() >= $amountNeeded) {
+                    return false;
+                }
             }
         }
 
