@@ -1,8 +1,11 @@
-<?php namespace App\Models;
+<?php namespace App\Objects;
 
 use App\Http\Traits\Status;
+use App\Models\EligibleToAddForeman;
+use App\Models\TotalForeman;
+use App\Models\TotalResources;
 
-class Worker
+class Foreman
 {
     private $cost;
     private $value;
@@ -18,14 +21,11 @@ class Worker
     {
         $this->setResourceId($resourceId);
         $this->setOwner(auth()->id());
-        $this->setBaseCost(config('placeholders.worker_base_cost.'.$resourceId));
-        $this->setAmount(TotalWorkers::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])
-                                     ->first()->amount);
+        $this->setBaseCost(config('placeholders.foreman_base_cost.'.$resourceId));
+        $this->setAmount(TotalForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount);
         $this->setCost($this->baseCost * $this->amount);
         $this->setValue(1);
-        $this->setEligibleToAdd(EligibleToAddWorker::where(['user_id'     => $this->owner,
-                                                            'resource_id' => $this->resourceId
-        ])->first()->status);
+        $this->setEligibleToAdd(EligibleToAddForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->status);
     }
 
 
@@ -154,12 +154,11 @@ class Worker
         $this->baseCost = $baseCost;
     }
 
-
     public function add(): bool
     {
-        if ($this->eligibleToAdd) {
+        if($this->eligibleToAdd) {
             $this->payForAddition();
-            $total = TotalWorkers::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
+            $total = TotalForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
             $total->amount++;
             $total->save();
             $this->setAmount($total->amount);
@@ -171,10 +170,8 @@ class Worker
         return false;
     }
 
-
-    private function payForAddition()
-    {
-        $tr         = TotalResources::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
+    public function payForAddition() {
+        $tr = TotalResources::where(['user_id' => auth()::id(), 'resource_id' => $this->resourceId])->first();
         $tr->amount -= $this->cost;
         $tr->save();
     }

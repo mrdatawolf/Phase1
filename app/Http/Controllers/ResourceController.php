@@ -1,6 +1,4 @@
-<?php
-
-namespace App\Http\Controllers;
+<?php namespace App\Http\Controllers;
 
 use App\Models\Resource;
 use Illuminate\Http\JsonResponse;
@@ -17,10 +15,11 @@ class ResourceController extends Controller
         return Resource::all();
     }
 
+
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      *
      * @return JsonResponse
      */
@@ -28,6 +27,7 @@ class ResourceController extends Controller
     {
         return response()->json('Denied', 403);
     }
+
 
     /**
      * Display the specified resource.
@@ -41,18 +41,20 @@ class ResourceController extends Controller
         return Resource::find($id);
     }
 
+
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request $request
-     * @param int                       $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
      *
      * @return JsonResponse
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        return response()->json('Denied for ' . $id, 403);
+        return response()->json('Denied for '.$id, 403);
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -63,10 +65,12 @@ class ResourceController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        return response()->json('Denied for ' . $id, 403);
+        return response()->json('Denied for '.$id, 403);
     }
 
-    public function ids() {
+
+    public function ids()
+    {
         return Resource::all()->pluck('id')->jsonSerialize();
     }
 }

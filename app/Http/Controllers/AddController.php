@@ -1,11 +1,11 @@
 <?php namespace App\Http\Controllers;
 
-use App\Models\Automate;
-use App\Models\Enable;
-use App\Models\Foreman;
-use App\Models\Gather;
-use App\Models\Tool;
-use App\Models\Worker;
+use App\Objects\Automate;
+use App\Objects\Enable;
+use App\Objects\Foreman;
+use App\Objects\Gather;
+use App\Objects\Tool;
+use App\Objects\Worker;
 use Illuminate\Http\Request;
 
 class AddController extends Controller
@@ -27,11 +27,11 @@ class AddController extends Controller
      *
      * @param \Illuminate\Http\Request $request
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        dd('store', $request->all());
+        return response()->json('Denied', 403);
     }
 
 
@@ -40,11 +40,11 @@ class AddController extends Controller
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
-        dd('show', $id);
+        return response()->json('Denied', 403);
     }
 
 
@@ -54,11 +54,11 @@ class AddController extends Controller
      * @param \Illuminate\Http\Request $request
      * @param int                      $id
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
-        dd('update', $request->all(), $id);
+        return response()->json('Denied', 403);
     }
 
 
@@ -67,11 +67,11 @@ class AddController extends Controller
      *
      * @param int $id
      *
-     * @return bool
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
-        return false;
+        return response()->json('Denied', 403);
     }
 
 

@@ -1,44 +1,40 @@
 <?php namespace App\Http\Livewire;
 
 use App\Http\Traits\ResourcesRequired;
-use App\Models\Automate;
-use App\Models\Enable;
-use App\Models\Foreman;
-use App\Models\Resource;
-use App\Models\Tool;
-use App\Models\Worker;
+use App\Models\Resource as ResourceModel;
 use Livewire\Component;
+use App\Objects\Resource;
 
 class Gather extends Component
 {
     use ResourcesRequired;
 
-    public  $resourceId;
-    public  $resourceName;
-    public  $debug                         = false;
-    public  $allowed                       = false;
-    public  $allowEnable                   = false;
-    public  $allowAutomate                 = false;
-    public  $allowAddWorker                = false;
-    public  $allowAddTool                  = false;
-    public  $allowAddForeman               = false;
-    public  $enabled                       = false;
-    public  $automated                     = false;
-    public  $resourcesNeededToAutomate     = [];
-    public  $resourcesNeededToEnable       = [];
-    public  $totalGatherAmount             = 1;
-    public  $totalWorkers                  = 1;
-    public  $totalTools                    = 0;
-    public  $totalForemen                  = 0;
-    public  $totalResource                 = 0;
-    public  $automateResourcesRequired     = ' ';
-    public  $resourcesRequiredToAddWorker  = ' ';
-    public  $resourcesRequiredToAddTool    = ' ';
-    public  $resourcesRequiredToAddForeman = ' ';
-    public  $resources;
-    public  $allowSell;
-    public  $allowSendToStorage;
-    public  $allowSendToTeamStorage;
+    public $resourceId;
+    public $resourceName;
+    public $debug                         = false;
+    public $allowed                       = false;
+    public $allowEnable                   = false;
+    public $allowAutomate                 = false;
+    public $allowAddWorker                = false;
+    public $allowAddTool                  = false;
+    public $allowAddForeman               = false;
+    public $enabled                       = false;
+    public $automated                     = false;
+    public $resourcesNeededToAutomate     = [];
+    public $resourcesNeededToEnable       = [];
+    public $totalGatherAmount             = 1;
+    public $totalWorkers                  = 1;
+    public $totalTools                    = 0;
+    public $totalForemen                  = 0;
+    public $totalResource                 = 0;
+    public $automateResourcesRequired     = ' ';
+    public $resourcesRequiredToAddWorker  = ' ';
+    public $resourcesRequiredToAddTool    = ' ';
+    public $resourcesRequiredToAddForeman = ' ';
+    public $resources;
+    public $allowSell;
+    public $allowSendToStorage;
+    public $allowSendToTeamStorage;
 
     public $listeners = [
         'canBeEnabled',
@@ -54,35 +50,31 @@ class Gather extends Component
 
     public function mount()
     {
-        $automate = new Automate($this->resourceId);
-        $enable = new Enable($this->resourceId);
-        $workers  = new Worker($this->resourceId);
-        $tools    = new Tool($this->resourceId);
-        $foremen  = new Foreman($this->resourceId);
-        $gather   = new \App\Models\Gather($this->resourceId);
-        $this->allowAutomate = $automate->getEligibleToActivate();
-        $this->automated = $automate->getStatus();
-        $this->enabled = $enable->getStatus();
-        $this->resources = Resource::get();
-        $this->getResourcesNeededToAutomate($this->resourceId);
-        $this->resourcesNeededToEnable = $enable->getCost();
-        $this->totalGatherAmount = $gather->getAmount();
-        $this->resourcesRequiredToAddWorker  = $workers->getCost();
-        $this->resourcesRequiredToAddTool    = $tools->getCost();
-        $this->resourcesRequiredToAddForeman = $foremen->getCost();
-
+        $resource                     = new Resource($this->resourceId);
+        $this->resources              = ResourceModel::all();
         $this->allowSell              = false;
         $this->allowSendToStorage     = false;
         $this->allowSendToTeamStorage = false;
-        $this->totalResource          = $this->gatherTotalResource(auth()->id(), $this->resourceId);
-        $this->totalForemen           = $foremen->getAmount();
-        $this->totalTools             = $tools->getAmount();
-        $this->totalWorkers           = $workers->getAmount();
-        $this->allowAddForeman        = $foremen->getEligibleToAdd();
-        $this->allowAddTool           = $tools->getEligibleToAdd();
-        $this->allowAddWorker         = $workers->getEligibleToAdd();
-        $this->allowAutomate          = $automate->getEligibleToActivate();
-        $this->allowEnable            = $enable->getEligibleToActivate();
+
+        $this->allowAutomate                 = $resource->getEligibleToAutomate();
+        $this->automated                     = $resource->getAutomated();
+        $this->enabled                       = $resource->getActivated();
+        $this->resourcesNeededToAutomate     = $resource->getAutomateCost();
+        $this->resourcesNeededToEnable       = $resource->getActivateCost();
+        $this->totalGatherAmount             = $resource->getIncrementAmount();
+        $this->resourcesRequiredToAddWorker  = $resource->getWorkerCost();
+        $this->resourcesRequiredToAddTool    = $resource->getToolCost();
+        $this->resourcesRequiredToAddForeman = $resource->getForemanCost();
+
+        $this->totalResource   = $resource->getAmount();
+        $this->totalForemen    = $resource->getForemanAmount();
+        $this->totalTools      = $resource->getToolAmount();
+        $this->totalWorkers    = $resource->getWorkerAmount();
+        $this->allowAddForeman = $resource->getEligibleToAddForeman();
+        $this->allowAddTool    = $resource->getEligibleToAddTool();
+        $this->allowAddWorker  = $resource->getEligibleToAddWorker();
+        $this->allowAutomate   = $resource->getEligibleToAutomate();
+        $this->allowEnable     = $resource->getEligibleToActivate();
     }
 
 
@@ -94,6 +86,8 @@ class Gather extends Component
         return $this->allowed;
     }
 
+
+    /** LISTENERS */
 
     /**
      * note: when the parent wants to let us know about a change in the enable possiblity for a resource
@@ -114,6 +108,7 @@ class Gather extends Component
      *
      * @param $id
      * @param $bool
+     * @param $amount
      */
     public function canBeAutomated($id, $bool, $amount)
     {
@@ -135,7 +130,8 @@ class Gather extends Component
     public function canAddWorker($id, $bool, $amount)
     {
         if ($this->resourceId === $id) {
-            $this->allowAddWorker            = $bool;
+            $this->allowAddWorker               = $bool;
+            $this->resourcesRequiredToAddWorker = $amount;
         }
     }
 
@@ -150,7 +146,8 @@ class Gather extends Component
     public function canAddTool($id, $bool, $amount)
     {
         if ($this->resourceId === $id) {
-            $this->allowAddTool              = $bool;
+            $this->allowAddTool               = $bool;
+            $this->resourcesRequiredToAddTool = $amount;
         }
     }
 
@@ -165,79 +162,8 @@ class Gather extends Component
     public function canAddForeman($id, $bool, $amount)
     {
         if ($this->resourceId === $id) {
-            $this->allowAddForeman           = $bool;
-        }
-    }
-
-
-    /**
-     * tell the parent we want to add to the total for the resource
-     */
-    public function gather()
-    {
-        if ($this->enabled) {
-            $this->emit('requestGather', $this->resourceId);
-        }
-    }
-
-
-    /**
-     * tell the parent we want to improve the resource
-     */
-    public function addWorker()
-    {
-        if ($this->enabled && $this->allowAddWorker) {
-            $this->emit('requestAdd', $this->resourceId, 'worker');
-        }
-        $this->allowAddWorker = false;
-    }
-
-
-    /**
-     * tell the parent we want to improve the resource
-     */
-    public function addTool()
-    {
-        if ($this->enabled && $this->allowAddTool) {
-            $this->emit('requestAdd', $this->resourceId, 'tool');
-        }
-        $this->allowAddTool = false;
-    }
-
-
-    /**
-     * tell the parent we want to improve the resource
-     */
-    public function addForeman()
-    {
-        if ($this->enabled && $this->allowAddForeman) {
-            $this->emit('requestAdd', $this->resourceId, 'foreman');
-        }
-        $this->allowAddForeman = false;
-    }
-
-
-    /**
-     * tell the parent we want to enable the resource
-     */
-    public function enable()
-    {
-        if ($this->allowEnable) {
-            $this->enabled = true;
-            $this->emit('requestEnable', $this->resourceId);
-        }
-        $this->allowEnable = false;
-    }
-
-
-    /**
-     * tell the parent we want to automate the resource
-     */
-    public function automate()
-    {
-        if ($this->allowAutomate) {
-            $this->automated = true;
-            $this->emit('requestAutomate', $this->resourceId);
+            $this->allowAddForeman               = $bool;
+            $this->resourcesRequiredToAddForeman = $amount;
         }
     }
 
@@ -301,9 +227,84 @@ class Gather extends Component
         }
     }
 
+    /** request out to the system */
 
-    public function sellRequest() {
+    /**
+     * tell the parent we want to add to the total for the resource
+     */
+    public function gather()
+    {
+        $this->emit('requestGather', $this->resourceId);
+    }
+
+
+    /**
+     * tell the parent we want to improve the resource
+     */
+    public function addWorker()
+    {
+        $this->allowAddWorker = false;
+        $this->emit('requestAdd', $this->resourceId, 'worker');
+    }
+
+
+    /**
+     * tell the parent we want to improve the resource
+     */
+    public function addTool()
+    {
+        $this->allowAddTool = false;
+        $this->emit('requestAdd', $this->resourceId, 'tool');
+    }
+
+
+    /**
+     * tell the parent we want to improve the resource
+     */
+    public function addForeman()
+    {
+        $this->allowAddForeman = false;
+        $this->emit('requestAdd', $this->resourceId, 'foreman');
+    }
+
+
+    /**
+     * tell the parent we want to enable the resource
+     */
+    public function enable()
+    {
+        $this->allowEnable = false;
+        $this->emit('requestEnable', $this->resourceId);
+    }
+
+
+    /**
+     * tell the parent we want to automate the resource
+     */
+    public function automate()
+    {
+        $this->emit('requestAutomate', $this->resourceId);
+    }
+
+
+    /**
+     * tell the parent we want to sell the resource
+     */
+    public function sellRequest()
+    {
         $this->emit('sellRequest', auth()->id(), $this->resourceId);
+    }
+
+
+    public function storageRequest()
+    {
+        //do stuff
+    }
+
+
+    public function factionStorageRequest()
+    {
+        //do stuff
     }
 
 

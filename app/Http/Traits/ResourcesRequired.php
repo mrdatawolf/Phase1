@@ -80,13 +80,7 @@ trait ResourcesRequired
         return $required;
     }
 
-    public function gatherTotalResource($id, $resourceId): int
-    {
-        return (int)TotalResources::firstOrCreate([
-            'user_id'     => $id,
-            'resource_id' => $resourceId
-        ])->amount;
-    }
+
 
 
     public function gatherTotalForemen($id, $resourceId): int

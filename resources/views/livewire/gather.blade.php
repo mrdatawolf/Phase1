@@ -86,28 +86,19 @@
                             <div class="align-right col-span-3 grid grid-cols-2">
                                 <div><span title="{{ __('total workers') }}">{{ $totalWorkers }}</span></div>
                                 <div>
-                                    <span wire:key="improve_{{ $resourceId }}" wire:click="addWorker" class="material-icons {{ ($allowAddWorker) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="{{ __('Add a worker') }}">group</span>
-                                </div>
-                                <div class="col-span-2">
-                                    <span title="{{ __($resourceName . ' required to add another worker') }}">{{ $resourcesRequiredToAddWorker }}</span>
+                                    <span wire:key="improve_{{ $resourceId }}" wire:click="addWorker" class="material-icons {{ ($allowAddWorker) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="{{ __('Add a worker') }} for {{ $resourcesRequiredToAddWorker }}">group</span>
                                 </div>
                             </div>
                             <div class="align-right col-span-3 grid grid-cols-2">
                                 <div><span title="{{ __('total tools') }}">{{ $totalTools }}</span></div>
                                 <div>
-                                    <span wire:key="add_tools_{{ $resourceId }}" wire:click="addTool" class="material-icons {{ ($allowAddTool) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="{{ __('Add a tool') }}">construction</span>
-                                </div>
-                                <div class="col-span-2">
-                                    <span title="{{ __($resourceName . ' required to add another tool') }}">{{ $resourcesRequiredToAddTool }}</span>
+                                    <span wire:key="add_tools_{{ $resourceId }}" wire:click="addTool" class="material-icons {{ ($allowAddTool) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="{{ __('Add a tool') }} for {{ $resourcesRequiredToAddTool }}">construction</span>
                                 </div>
                             </div>
                             <div class="align-right col-span-3 grid grid-cols-2">
                                 <div><span title="{{ __('total foremen') }}">{{ $totalForemen }}</span></div>
                                 <div>
-                                    <span wire:key="add_foreman_{{ $resourceId }}" wire:click="addForeman" class="material-icons {{ ($allowAddForeman) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="{{ __('Add a foreman') }}">person</span>
-                                </div>
-                                <div class="col-span-2">
-                                    <span title="{{ __($resourceName . ' required to add another foreman') }}">{{ $resourcesRequiredToAddForeman }}</span>
+                                    <span wire:key="add_foreman_{{ $resourceId }}" wire:click="addForeman" class="material-icons {{ ($allowAddForeman) ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="{{ __('Add a foreman') }} for {{ $resourcesRequiredToAddForeman }}">person</span>
                                 </div>
                             </div>
                         @else
@@ -131,10 +122,10 @@
                                 <span wire:click="sellRequest" class="material-icons {{ ($enabled) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="sell">point_of_sale</span>
                             </div>
                             <div>
-                                <span class="material-icons {{ ($allowSendToStorage) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="My Storage">local_shipping</span>
+                                <span wire:click="storageRequest" class="material-icons {{ ($allowSendToStorage) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="My Storage">local_shipping</span>
                             </div>
                             <div>
-                                <span class="material-icons {{ ($allowSendToTeamStorage) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="Team Storage">local_post_office</span>
+                                <span wire:click="factionStorageRequest" class="material-icons {{ ($allowSendToTeamStorage) ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-500 hover:bg-gray-700' }} rounded-full" title="Team Storage">local_post_office</span>
                             </div>
                             <div>&nbsp;</div>
                         </div>
