@@ -79,9 +79,9 @@ class AddController extends Controller
      * @param $type
      * @param $resourceId
      *
-     * @return bool
+     * @return mixed
      */
-    public function addImprovement($type, $resourceId): bool
+    public function addImprovement($type, $resourceId)
     {
         $return = false;
         switch ($type) {
