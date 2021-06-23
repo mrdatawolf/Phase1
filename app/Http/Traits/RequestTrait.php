@@ -144,4 +144,29 @@ trait RequestTrait
         $this->setStatus('tool', $resourceId);
         $this->setStatus('foreman', $resourceId);
     }
+
+
+    /*
+     * verify validity of actions
+     */
+
+    /**
+     * @param int    $id
+     * @param string $type
+     *
+     * @return bool
+     */
+    private function isEligible(int $id, string $type): bool
+    {
+        switch ($type) {
+            case 'worker' :
+                return $this->eligibleToAddWorker[$id];
+            case 'tool' :
+                return $this->eligibleToAddTool[$id];
+            case 'foreman' :
+                return $this->resourcesNeededToAddForeman[$id];
+            default :
+                return false;
+        }
+    }
 }

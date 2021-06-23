@@ -116,6 +116,16 @@ class Resource extends Model
         return 0;
     }
 
+
+    public function improveModifier($userId) : int
+    {
+        if(ImproveMultiplier::where(['resource_id' => $this->id, 'user_id' => $userId])->exists()) {
+            return ImproveMultiplier::where(['resource_id' => $this->id, 'user_id' => $userId])->first()->amount;
+        }
+
+        return 0;
+    }
+
     public function totalTools($userId) : int
     {
         if(TotalTools::where(['resource_id' => $this->id, 'user_id' => $userId])->exists()) {

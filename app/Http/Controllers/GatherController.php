@@ -1,6 +1,6 @@
 <?php namespace App\Http\Controllers;
 
-use App\Models\Gather;
+use App\Objects\Gather;
 use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -14,20 +14,21 @@ class GatherController extends Controller
      */
     public function index(): JsonResponse
     {
-        $return = [];
+        $return    = [];
         $resources = Resource::all();
-        foreach($resources as $resource) {
-            $gather = new Gather($resource->id);
+        foreach ($resources as $resource) {
+            $gather                = new Gather($resource->id);
             $return[$resource->id] = $gather->getAmount();
         }
 
         return response()->json($return, 200);
     }
 
+
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -35,6 +36,7 @@ class GatherController extends Controller
     {
         return response()->json('Denied', 403);
     }
+
 
     /**
      * Display the specified resource.
@@ -54,8 +56,8 @@ class GatherController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request $request
-     * @param int                       $resourceId
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $resourceId
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -66,6 +68,7 @@ class GatherController extends Controller
         return response()->json($gather->add(), 200);
     }
 
+
     /**
      * Remove the specified resource from storage.
      *
@@ -75,6 +78,6 @@ class GatherController extends Controller
      */
     public function destroy(int $resourceId): JsonResponse
     {
-        return response()->json('Not implemented for ' . $resourceId, 501);
+        return response()->json('Not implemented for '.$resourceId, 501);
     }
 }

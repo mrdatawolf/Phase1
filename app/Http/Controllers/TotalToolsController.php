@@ -16,10 +16,12 @@ class TotalToolsController extends Controller
         return TotalTools::all();
     }
 
+
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -27,10 +29,12 @@ class TotalToolsController extends Controller
         return TotalTools::create($request->all());
     }
 
+
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -38,11 +42,13 @@ class TotalToolsController extends Controller
         return TotalTools::find($id);
     }
 
+
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -53,15 +59,18 @@ class TotalToolsController extends Controller
         return $total;
     }
 
+
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
         $total = TotalTools::find($id);
+
         return $total->delete();
     }
 }

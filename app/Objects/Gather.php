@@ -1,6 +1,10 @@
-<?php namespace App\Models;
+<?php namespace App\Objects;
 
 use App\Http\Traits\Status;
+use App\Models\ImproveMultiplier;
+use App\Models\ResourceEnabled;
+use App\Models\ResourceIncrementAmounts;
+use App\Models\TotalResources;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Gather

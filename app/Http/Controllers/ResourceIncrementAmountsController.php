@@ -1,6 +1,4 @@
-<?php
-
-namespace App\Http\Controllers;
+<?php namespace App\Http\Controllers;
 
 use App\Models\ResourceIncrementAmounts;
 use Illuminate\Http\Request;
@@ -16,10 +14,12 @@ class ResourceIncrementAmountsController extends Controller
         return ResourceIncrementAmounts::all();
     }
 
+
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -27,10 +27,12 @@ class ResourceIncrementAmountsController extends Controller
         return ResourceIncrementAmounts::create($request->all());
     }
 
+
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -38,11 +40,13 @@ class ResourceIncrementAmountsController extends Controller
         return ResourceIncrementAmounts::find($id);
     }
 
+
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -53,15 +57,18 @@ class ResourceIncrementAmountsController extends Controller
         return $total;
     }
 
+
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
         $total = ResourceIncrementAmounts::find($id);
+
         return $total->delete();
     }
 }

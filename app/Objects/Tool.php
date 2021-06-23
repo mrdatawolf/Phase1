@@ -1,8 +1,12 @@
-<?php namespace App\Models;
+<?php namespace App\Objects;
 
 use App\Http\Traits\Status;
+use App\Models\EligibleToAddTool;
+use App\Models\TotalResources;
+use App\Models\TotalTools;
+use League\Flysystem\Config;
 
-class Foreman
+class Tool
 {
     private $cost;
     private $value;
@@ -14,15 +18,16 @@ class Foreman
 
     use Status;
 
+
     public function __construct($resourceId)
     {
         $this->setResourceId($resourceId);
         $this->setOwner(auth()->id());
-        $this->setBaseCost(config('placeholders.foreman_base_cost.'.$resourceId));
-        $this->setAmount(TotalForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount);
+        $this->setBaseCost(config('placeholders.tool_base_cost.'.$resourceId));
+        $this->setAmount(TotalTools::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->amount);
         $this->setCost($this->baseCost * $this->amount);
         $this->setValue(1);
-        $this->setEligibleToAdd(EligibleToAddForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->status);
+        $this->setEligibleToAdd(EligibleToAddTool::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first()->status);
     }
 
 
@@ -155,7 +160,7 @@ class Foreman
     {
         if($this->eligibleToAdd) {
             $this->payForAddition();
-            $total = TotalForeman::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
+            $total = TotalTools::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
             $total->amount++;
             $total->save();
             $this->setAmount($total->amount);
@@ -168,7 +173,7 @@ class Foreman
     }
 
     public function payForAddition() {
-        $tr = TotalResources::where(['user_id' => auth()::id(), 'resource_id' => $this->resourceId])->first();
+        $tr = TotalResources::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
         $tr->amount -= $this->cost;
         $tr->save();
     }

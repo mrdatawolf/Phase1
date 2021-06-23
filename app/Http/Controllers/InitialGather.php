@@ -1,6 +1,4 @@
-<?php
-
-namespace App\Http\Controllers;
+<?php namespace App\Http\Controllers;
 
 use App\Models\Resource;
 use Illuminate\Http\Request;
@@ -9,14 +7,15 @@ class InitialGather extends Controller
 {
     /**
      * note: this should return all the data needed by a client to pickup the game for a user.
+     *
      * @return string
      */
     public function index(): string
     {
-        $userId = auth()->user()->id;
-        $resources = Resource::all();
+        $userId              = auth()->user()->id;
+        $resources           = Resource::all();
         $return['resources'] = [];
-        foreach($resources as $resource) {
+        foreach ($resources as $resource) {
             $return['resources'][] = [
                 'ID'            => $resource->id,
                 'Name'          => $resource->name,
@@ -48,7 +47,7 @@ class InitialGather extends Controller
      */
     public function store(Request $request)
     {
-        return null;
+        return response()->json('Denied', 403);
     }
 
 
@@ -61,9 +60,9 @@ class InitialGather extends Controller
      */
     public function show(int $id)
     {
-        $userId = auth()->user()->id;
+        $userId   = auth()->user()->id;
         $resource = Resource::find($id);
-        $return = [
+        $return   = [
             'ID'            => $resource->id,
             'Name'          => $resource->name,
             'Amount'        => $resource->amount($userId),
@@ -80,7 +79,6 @@ class InitialGather extends Controller
             'CanAddForeman' => $resource->canAddForeman($userId)
         ];
 
-
         return json_encode($return);
     }
 
@@ -93,9 +91,9 @@ class InitialGather extends Controller
      *
      * @return null
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
-        return null;
+        return response()->json('Denied for '.$id, 403);
     }
 
 
@@ -106,8 +104,8 @@ class InitialGather extends Controller
      *
      * @return null
      */
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        return null;
+        return response()->json('Denied for '.$id, 403);
     }
 }

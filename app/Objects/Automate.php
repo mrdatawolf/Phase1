@@ -1,9 +1,15 @@
-<?php namespace App\Models;
+<?php namespace App\Objects;
 
 use App\Http\Traits\Status;
+use App\Models\AutomateResources;
+use App\Models\EligibleToAutomate;
+use App\Models\ResourceAutomated;
+use App\Models\ResourceEnabled;
+use App\Models\TotalResources;
+use App\Models\Resource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Enable
+class Automate
 {
     use HasFactory;
 
@@ -51,9 +57,7 @@ class Enable
      */
     public function setEligibleToActivate($eligibleToActivate): void
     {
-        if ( ! $this->status) {
-            $this->eligibleToActivate = $eligibleToActivate;
-        }
+        $this->eligibleToActivate = $eligibleToActivate;
     }
 
 
@@ -83,7 +87,7 @@ class Enable
     private function gatherCost($resourceId): array
     {
         $required        = [];
-        $resourcesNeeded = EnableResources::where('resource_id', $resourceId)->first();
+        $resourcesNeeded = AutomateResources::where('resource_id', $resourceId)->first();
         for ($x = 1; $x <= Resource::all()->count(); $x++) {
             $thisId = 'r'.$x;
             $amount = (int)$resourcesNeeded->$thisId;
@@ -95,27 +99,37 @@ class Enable
         return $required;
     }
 
-
-    /**
-     * @return bool
-     */
     private function gatherStatus(): bool
     {
-        return (ResourceEnabled::where([
+        $enabled = ResourceEnabled::where([
+            'user_id'     => $this->owner,
+            'resource_id' => $this->resourceId
+        ])->first()->status == 1;
+        if($enabled) {
+
+            return (ResourceAutomated::where([
                 'user_id'     => $this->owner,
                 'resource_id' => $this->resourceId
             ])->first()->status == 1);
+        }
+
+        return false;
     }
 
 
-    /**
-     * @return bool
-     */
     private function gatherEligiblity(): bool
     {
-        if ( ! $this->status) {
-            return (EligibleToEnable::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])
-                                    ->first()->status == 1);
+        if(! $this->status) {
+            $enabled = ResourceEnabled::where([
+                    'user_id'     => $this->owner,
+                    'resource_id' => $this->resourceId
+                ])->first()->status == 1;
+            if ($enabled) {
+                return (EligibleToAutomate::where([
+                            'user_id'     => $this->owner,
+                            'resource_id' => $this->resourceId
+                        ])->first()->status == 1);
+            }
         }
 
         return false;
@@ -171,10 +185,10 @@ class Enable
     {
         if ($this->eligibleToActivate) {
             $this->payForActivation();
-            $re         = ResourceEnabled::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])
-                                         ->first();
-            $re->status = 1;
-            $re->save();
+            $ra         = ResourceAutomated::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])
+                                           ->first();
+            $ra->status = 1;
+            $ra->save();
             $this->updateAllStatus();
 
             return true;
@@ -186,7 +200,7 @@ class Enable
 
     public function deactivate(): bool
     {
-        $re         = ResourceEnabled::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
+        $re         = ResourceAutomated::where(['user_id' => $this->owner, 'resource_id' => $this->resourceId])->first();
         $re->status = 0;
         $re->save();
         $this->updateAllStatus();

@@ -1,11 +1,7 @@
 <?php namespace App\Http\Controllers;
 
-use App\Models\Automate;
-use App\Models\Enable;
-use App\Models\Foreman;
+use App\Objects\Automate;
 use App\Models\Resource;
-use App\Models\Tool;
-use App\Models\Worker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,7 +18,7 @@ class AutomateController extends Controller
         $return = [];
         $resources = Resource::all();
         foreach($resources as $resource) {
-            $automate = new Enable($resource->id);
+            $automate = new Automate($resource->id);
             $return[$resource->id] = $automate->getStatus();
         }
 

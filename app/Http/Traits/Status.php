@@ -1,16 +1,22 @@
 <?php namespace App\Http\Traits;
 
+use App\Models\Automate;
 use App\Models\AutomateResources;
 use App\Models\EligibleToAddForeman;
 use App\Models\EligibleToAddTool;
 use App\Models\EligibleToAddWorker;
 use App\Models\EligibleToAutomate;
 use App\Models\EligibleToEnable;
+use App\Models\Enable;
 use App\Models\EnableResources;
+use App\Models\Foreman;
+use App\Models\Gather;
 use App\Models\Resource;
 use App\Models\ResourceAutomated;
 use App\Models\ResourceEnabled;
+use App\Models\Tool;
 use App\Models\TotalResources;
+use App\Models\Worker;
 
 trait Status
 {
@@ -19,7 +25,12 @@ trait Status
     private function setStatus($type, $resourceId): bool
     {
         $return = false;
-        $userId = auth()->id();
+        $workers  = new Worker($resourceId);
+        $tools    = new Tool($resourceId);
+        $foremen  = new Foreman($resourceId);
+        $automate = new Automate($resourceId);
+        $enable   = new Enable($resourceId);
+        $gather   = new Gather($resourceId);
         $tr = TotalResources::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
         $re = ResourceEnabled::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
         $ra = ResourceAutomated::where(['user_id' => $userId, 'resource_id' => $resourceId])->first();
@@ -95,7 +106,6 @@ trait Status
         switch ($type) {
             case 'enable':
                 if ( ! $enabled) {
-                    $this->eligibleToEnable[$resourceId] = $bool;
                     $ete                                 = EligibleToEnable::where([
                         'user_id'     => auth()->id(),
                         'resource_id' => $resourceId
@@ -107,7 +117,6 @@ trait Status
                 break;
             case 'automate' :
                 if ( ! $automated) {
-                    $this->eligibleToAutomate[$resourceId] = $bool;
                     $eta                                   = EligibleToAutomate::where([
                         'user_id'     => auth()->id(),
                         'resource_id' => $resourceId
@@ -118,7 +127,6 @@ trait Status
                 }
                 break;
             case 'worker' :
-                $this->eligibleToAddWorker[$resourceId] = $bool;
                 $etw                                    = EligibleToAddWorker::where([
                     'user_id'     => auth()->id(),
                     'resource_id' => $resourceId
@@ -134,11 +142,9 @@ trait Status
                 ])->first();
                 $ett->status = $bool;
                 $ett->save();
-                $this->eligibleToAddTool[$resourceId] = $bool;
                 $return = true;
                 break;
             case 'foreman' :
-                $this->eligibleToAddForeman[$resourceId] = $bool;
                 $etf                                     = EligibleToAddForeman::where([
                     'user_id'     => auth()->id(),
                     'resource_id' => $resourceId
@@ -179,9 +185,6 @@ trait Status
         for ($x = 1; $x <= $resources->count(); $x++) {
             $tr = TotalResources::where(['user_id' => $userId, 'resource_id' => $x])->first();
             $thisId = 'r'.$x;
-if(is_null($resourcesNeeded)) {
-    dd($type, $resourceId);
-}
             $amountNeeded = (int) $resourcesNeeded->$thisId;
             $allow = ($tr->amount >= $amountNeeded);
             if ($allow === false) {
@@ -191,29 +194,6 @@ if(is_null($resourcesNeeded)) {
 
         return true;
     }
-
-
-    /**
-     * @param $resourceId
-     *
-     * @return array
-     */
-    public function showResourcesNeededToAutomate($resourceId): array
-    {
-        $required = [];
-        $resourcesNeeded     = AutomateResources::where('resource_id', $resourceId)->first();
-        $resources = Resource::all();
-        for ($x = 1; $x <= $resources->count(); $x++) {
-            $thisId = 'r'.$x;
-            $amount = (int) $resourcesNeeded->$thisId;
-            if ($amount > 0) {
-                $required[$x] = $amount;
-            }
-        }
-
-        return $required;
-    }
-
 
     private function updateAllStatus() {
         $resourceCount = Resource::count();
